@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
         candidates = random.sample(clients, conf["k"])
 
+        # 客户端上传的模型更新
         weight_accumulator = {}
 
         for name, params in server.global_model.state_dict().items():

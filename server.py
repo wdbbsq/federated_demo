@@ -21,6 +21,7 @@ class Server(object):
             else:
                 data.add_(update_per_layer)
 
+    # 评估全局模型
     def model_eval(self):
         self.global_model.eval()
 
