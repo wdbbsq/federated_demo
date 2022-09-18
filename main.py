@@ -3,6 +3,7 @@ import datetime
 import os
 import logging
 import torch, random
+import csv
 
 from server import *
 from client import *
@@ -25,6 +26,10 @@ if __name__ == '__main__':
     for c in range(conf["no_models"]):
         clients.append(Client(conf, server.global_model, train_datasets, c))
 
+    with open("res/train.csv", "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["epoch", "acc", "loss"])
+
     print("\n\n")
     for e in range(conf["global_epochs"]):
 
@@ -45,11 +50,13 @@ if __name__ == '__main__':
         server.model_aggregate(weight_accumulator)
 
         acc, loss = server.model_eval()
+        with open("res/train.csv", "a") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([e, acc, loss])
 
         print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
 
-
-
+    csvfile.close()
 
 
 

@@ -46,7 +46,7 @@ class Client(object):
                 loss.backward()
 
                 optimizer.step()
-            print("Epoch %d done." % e)
+            print("Client %d : epoch %d done." % (self.client_id, e))
         diff = dict()
         for name, data in self.local_model.state_dict().items():
             diff[name] = (data - model.state_dict()[name])
