@@ -18,5 +18,5 @@
 
 	"momentum" : 0.0001,
 
-	"lambda" : 0.1
+	"lambda_" : 0.1
 }

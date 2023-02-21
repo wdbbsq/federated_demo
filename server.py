@@ -1,28 +1,33 @@
-import models, torch
+import models
+import torch
 
 
-class Server(object):
-
+class Server:
     def __init__(self, conf, eval_dataset):
-
         self.conf = conf
-
         self.global_model = models.get_model(self.conf["model_name"])
-
-        self.eval_loader = torch.utils.data.DataLoader(eval_dataset, batch_size=self.conf["batch_size"], shuffle=True)
+        self.eval_loader = torch.utils.data.DataLoader(eval_dataset,
+                                                       batch_size=self.conf["batch_size"],
+                                                       shuffle=True)
 
     def model_aggregate(self, weight_accumulator):
-        for name, data in self.global_model.state_dict().items():
 
-            update_per_layer = weight_accumulator[name] * self.conf["lambda"]
+        for name, sum_update in weight_accumulator.items():
+            scale = self.conf.eta / self.conf.total
+            average_update = scale * sum_update
+            model_weight = self.global_model.state_dict()[name]
+            model_weight.add_(average_update)
 
-            if data.type() != update_per_layer.type():
-                data.add_(update_per_layer.to(torch.int64))
-            else:
-                data.add_(update_per_layer)
+        # for name, data in self.global_model.state_dict().items():
+        #     update_per_layer = weight_accumulator[name] * self.conf["lambda"]
+        #     if data.type() != update_per_layer.type():
+        #         data.add_(update_per_layer.to(torch.int64))
+        #     else:
+        #         data.add_(update_per_layer)
 
-    # 评估全局模型
     def model_eval(self):
+        # 不启用Batch Normalization和Dropout，
+        # 保证测试过程中，Batch Normalization层的均值和方差不变
         self.global_model.eval()
 
         total_loss = 0.0
@@ -38,10 +43,13 @@ class Server(object):
 
             output = self.global_model(data)
 
-            total_loss += torch.nn.functional.cross_entropy(output, target,
-                                                            reduction='sum').item()  # sum up batch loss
-            pred = output.data.max(1)[1]  # get the index of the max log-probability
-            correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+            # sum up batch loss
+            total_loss += torch.nn.functional.cross_entropy(output,
+                                                            target,
+                                                            reduction='sum').item()
+            # get the index of the max log-probability
+            pred = output.data.max(1)[1]
+            correct += pred.eq(target.data.view_as(pred)).sum().item()
 
         acc = 100.0 * (float(correct) / float(dataset_size))
         total_l = total_loss / dataset_size

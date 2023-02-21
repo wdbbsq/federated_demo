@@ -4,7 +4,7 @@ from torchvision import models
 
 def get_model(name="vgg16", pretrained=True):
     if name == "resnet18":
-        model = models.resnet18(pretrained=pretrained)
+        model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
     elif name == "densenet121":
