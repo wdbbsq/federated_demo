@@ -2,10 +2,10 @@ import torch
 from torchvision import datasets, transforms
 
 
-def get_dataset(dir, name):
+def get_dataset(path, name):
     if name == 'mnist':
-        train_dataset = datasets.MNIST(dir, train=True, download=True, transform=transforms.ToTensor())
-        eval_dataset = datasets.MNIST(dir, train=False, transform=transforms.ToTensor())
+        train_dataset = datasets.MNIST(path, train=True, download=True, transform=transforms.ToTensor())
+        eval_dataset = datasets.MNIST(path, train=False, transform=transforms.ToTensor())
 
     elif name == 'cifar':
         transform_train = transforms.Compose([
@@ -20,8 +20,8 @@ def get_dataset(dir, name):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
-        train_dataset = datasets.CIFAR10(dir, train=True, download=True,
+        train_dataset = datasets.CIFAR10(path, train=True, download=True,
                                          transform=transform_train)
-        eval_dataset = datasets.CIFAR10(dir, train=False, transform=transform_test)
+        eval_dataset = datasets.CIFAR10(path, train=False, transform=transform_test)
 
     return train_dataset, eval_dataset

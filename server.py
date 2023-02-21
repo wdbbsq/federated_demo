@@ -13,7 +13,7 @@ class Server:
     def model_aggregate(self, weight_accumulator):
 
         for name, sum_update in weight_accumulator.items():
-            scale = self.conf.eta / self.conf.total
+            scale = self.conf["selected"] / self.conf["total"]
             average_update = scale * sum_update
             model_weight = self.global_model.state_dict()[name]
             model_weight.add_(average_update)
