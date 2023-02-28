@@ -1,17 +1,18 @@
+import numpy as np
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
+from torch.autograd import Variable
 from torch.utils.data import DataLoader
-import malicious
+
 import data_sets
-import torch.backends.cudnn as cudnn
-from user import flatten_params, row_into_parameters, cycle
+import malicious
+from user import flatten_params, row_into_parameters
 
 
 class BackdoorAttack(malicious.Attack):
-    def __init__(self, num_std, alpha, data_set, loss, backdoor, num_epochs=30, batch_size=200, learning_rate=0.1, momentum=0.9, my_print=print):
+    def __init__(self, num_std, alpha, data_set, loss, backdoor, num_epochs=30, batch_size=200, learning_rate=0.1,
+                 momentum=0.9, my_print=print):
         super(BackdoorAttack, self).__init__(num_std)
         self.my_print = my_print
         self.alpha = alpha
@@ -30,19 +31,19 @@ class BackdoorAttack(malicious.Attack):
         if backdoor != 'pattern':
             self.dataset = self.malicious_net.dataset(True)
             self.train_loader = torch.utils.data.DataLoader(
-                self.dataset, sampler=torch.utils.data.distributed.DistributedSampler(self.dataset, num_replicas=len(self.dataset),
-                                                                                 rank=backdoor-1),
+                self.dataset,
+                sampler=torch.utils.data.distributed.DistributedSampler(self.dataset, num_replicas=len(self.dataset),
+                                                                        rank=backdoor - 1),
                 batch_size=batch_size, shuffle=False)
         else:
             self.dataset = self.malicious_net.dataset(True, BackdoorAttack.add_pattern)
             u = int(len(self.dataset) / batch_size / 10)
             self.train_loader = torch.utils.data.DataLoader(
                 self.dataset, sampler=torch.utils.data.distributed.DistributedSampler(self.dataset, num_replicas=u,
-                                                                                 rank=np.random.randint(u)),
+                                                                                      rank=np.random.randint(u)),
                 batch_size=batch_size, shuffle=False)
         self.test_loader = self.train_loader
         self.momentum = momentum
-
 
     @staticmethod
     def add_pattern(img):
@@ -51,11 +52,11 @@ class BackdoorAttack(malicious.Attack):
 
     def _attack_grads(self, grads_mean, grads_stdev, original_params, learning_rate):
 
-        initial_params_flat = original_params - learning_rate * grads_mean # the corrected param after the user optimized, because we still want the model to improve
+        initial_params_flat = original_params - learning_rate * grads_mean  # the corrected param after the user optimized, because we still want the model to improve
 
         mal_net_params = self.train_malicious_network(initial_params_flat)
 
-        #Getting from the final required mal_net_params to the gradients that needs to be applied on the parameters of the previous round.
+        # Getting from the final required mal_net_params to the gradients that needs to be applied on the parameters of the previous round.
         new_params = mal_net_params + learning_rate * grads_mean
         new_grads = (initial_params_flat - new_params) / learning_rate
 
@@ -95,10 +96,10 @@ class BackdoorAttack(malicious.Attack):
 
             if to_print:
                 self.my_print('##Test malicious net: [{}] Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(epoch,
-                                                                                                          test_loss,
-                                                                                                          correct,
-                                                                                                          test_len,
-                                                                                                          accuracy))
+                                                                                                                  test_loss,
+                                                                                                                  correct,
+                                                                                                                  test_len,
+                                                                                                                  accuracy))
         return accuracy
 
     def init_malicious_network(self, flat_params):
@@ -146,7 +147,6 @@ class BackdoorAttack(malicious.Attack):
                         raise Exception("Got nan dist loss")
 
                     loss += dist_loss * self.alpha
-
 
                 if torch.isnan(loss):
                     raise Exception("Got nan loss")

@@ -1,6 +1,7 @@
 import numpy as np
 from collections import defaultdict
 
+
 class DefenseTypes:
     NoDefense = 'NoDefense'
     Krum = 'Krum'
@@ -10,8 +11,10 @@ class DefenseTypes:
     def __str__(self):
         return self.value
 
+
 def no_defense(users_grads, users_count, corrupted_count):
     return np.mean(users_grads, axis=0)
+
 
 def _krum_create_distances(users_grads):
     distances = defaultdict(dict)
@@ -20,9 +23,11 @@ def _krum_create_distances(users_grads):
             distances[i][j] = distances[j][i] = np.linalg.norm(users_grads[i] - users_grads[j])
     return distances
 
-def krum(users_grads, users_count, corrupted_count, distances=None,return_index=False, debug=False):
+
+def krum(users_grads, users_count, corrupted_count, distances=None, return_index=False, debug=False):
     if not return_index:
-        assert users_count >= 2*corrupted_count + 1,('users_count>=2*corrupted_count + 3', users_count, corrupted_count)
+        assert users_count >= 2 * corrupted_count + 1, (
+            'users_count>=2*corrupted_count + 3', users_count, corrupted_count)
     non_malicious_count = users_count - corrupted_count
     minimal_error = 1e20
     minimal_error_index = -1
@@ -41,6 +46,7 @@ def krum(users_grads, users_count, corrupted_count, distances=None,return_index=
     else:
         return users_grads[minimal_error_index]
 
+
 def trimmed_mean(users_grads, users_count, corrupted_count):
     number_to_consider = int(users_grads.shape[0] - corrupted_count) - 1
     current_grads = np.empty((users_grads.shape[1],), users_grads.dtype)
@@ -53,8 +59,8 @@ def trimmed_mean(users_grads, users_count, corrupted_count):
 
 
 def bulyan(users_grads, users_count, corrupted_count):
-    assert users_count >= 4*corrupted_count + 3
-    set_size = users_count - 2*corrupted_count
+    assert users_count >= 4 * corrupted_count + 3
+    set_size = users_count - 2 * corrupted_count
     selection_set = []
 
     distances = _krum_create_distances(users_grads)
@@ -67,7 +73,7 @@ def bulyan(users_grads, users_count, corrupted_count):
         for remaining_user in distances.keys():
             distances[remaining_user].pop(currently_selected)
 
-    return trimmed_mean(np.array(selection_set), len(selection_set), 2*corrupted_count)
+    return trimmed_mean(np.array(selection_set), len(selection_set), 2 * corrupted_count)
 
 
 defend = {DefenseTypes.Krum: krum,

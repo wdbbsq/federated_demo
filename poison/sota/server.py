@@ -8,8 +8,6 @@ import user
 import os
 
 
-
-
 class Server:
     def __init__(self, users, malicious_proportion, batch_size, learning_rate, fading_rate, momentum, data_set):
         self.criterion = nn.NLLLoss()
@@ -27,13 +25,13 @@ class Server:
             self.meta_net = data_sets.Cifar10Net()
         else:
             raise Exception("Unknown dataset {}".format(data_set))
-        self.test_loader = torch.utils.data.DataLoader(self.test_net.dataset(False), batch_size=batch_size, shuffle=False)
+        self.test_loader = torch.utils.data.DataLoader(self.test_net.dataset(False), batch_size=batch_size,
+                                                       shuffle=False)
 
         self.current_weights = np.concatenate([i.data.numpy().flatten() for i in self.test_net.parameters()])
         self.users_grads = np.empty((len(users), len(self.current_weights)), dtype=self.current_weights.dtype)
         self.velocity = np.zeros(self.current_weights.shape, self.users_grads.dtype)
         self.Meta = None
-
 
     def save_checkpoint(self, state, filename='checkpoint.pth.tar'):
         """Saves checkpoint to disk"""
@@ -65,15 +63,13 @@ class Server:
             TempMetaX, TempMetaY = users[i].MetaX, users[i].MetaY
             # TempMeta = [TempMetaX, TempMetaY]
 
-
             # Meta = tf.concat([Meta, TempMeta], 1)
             OriginMetaX = torch.cat([OriginMetaX, TempMetaX], 0)
             OriginMetaY = torch.cat([OriginMetaY, TempMetaY], 0)
-            print (TempMetaY)
+            print(TempMetaY)
 
             i = i + 1
         self.Meta = (OriginMetaX, OriginMetaY)
-
 
     # get the updated weights from users
     def collect_gradients(self):
@@ -82,7 +78,8 @@ class Server:
 
     # defend against malicious users
     def defend(self, defence_method, cur_epoch):
-        current_grads = defences.defend[defence_method](self.users_grads, len(self.users), int(len(self.users)*self.mal_prop))
+        current_grads = defences.defend[defence_method](self.users_grads, len(self.users),
+                                                        int(len(self.users) * self.mal_prop))
 
         self.velocity = self.momentum * self.velocity - self.learning_rate * current_grads
         self.current_weights += self.velocity
@@ -108,15 +105,3 @@ class Server:
         test_loss /= len(self.test_loader.dataset)
 
         return test_loss, correct
-
-
-
-
-
-
-
-
-
-
-
-

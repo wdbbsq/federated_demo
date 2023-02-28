@@ -1,9 +1,10 @@
-import torch.nn as nn
-import torch.nn.functional as F
-import torch
-from torchvision import datasets, transforms
 import math
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.model_selection import train_test_split
+from torchvision import datasets, transforms
 
 MNIST = 'MNIST'
 CIFAR10 = 'CIFAR10'
@@ -24,7 +25,7 @@ class MnistNet(nn.Module):
 
     def dataset(self, is_train, transform=None):
         t = [transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))]
+             transforms.Normalize((0.1307,), (0.3081,))]
         if transform:
             t.append(transform)
         return datasets.MNIST('./mnist_data', download=True, train=is_train, transform=transforms.Compose(t))
@@ -58,10 +59,10 @@ class Cifar10Net(nn.Module):
         if transform:
             t.append(transform)
         return datasets.CIFAR10(root='./cifar10_data', download=True, train=is_train,
-                                       transform=transforms.Compose(t))
+                                transform=transforms.Compose(t))
 
 
-#for resnet
+# for resnet
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, dropRate=0.0):
         super(BasicBlock, self).__init__()
@@ -76,7 +77,7 @@ class BasicBlock(nn.Module):
         self.droprate = dropRate
         self.equalInOut = (in_planes == out_planes)
         self.convShortcut = (not self.equalInOut) and nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride,
-                               padding=0, bias=False) or None
+                                                                padding=0, bias=False) or None
 
     def forward(self, x):
         if not self.equalInOut:
@@ -148,7 +149,6 @@ class Cifar100Net(nn.Module):
 
         return F.log_softmax(self.fc(x), dim=1)
 
-
     @staticmethod
     def dataset(is_train, transform=None):
         normalize = transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]],
@@ -156,14 +156,14 @@ class Cifar100Net(nn.Module):
 
         if is_train:
             t = [transforms.ToTensor(),
-                    transforms.Lambda(lambda x: F.pad(x.unsqueeze(0),
-                                                      (4, 4, 4, 4), mode='reflect').squeeze()),
-                    transforms.ToPILImage(),
-                    transforms.RandomCrop(32),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                    normalize,
-                ]
+                 transforms.Lambda(lambda x: F.pad(x.unsqueeze(0),
+                                                   (4, 4, 4, 4), mode='reflect').squeeze()),
+                 transforms.ToPILImage(),
+                 transforms.RandomCrop(32),
+                 transforms.RandomHorizontalFlip(),
+                 transforms.ToTensor(),
+                 normalize,
+                 ]
         else:
             t = [transforms.ToTensor(),
                  normalize]
@@ -172,14 +172,14 @@ class Cifar100Net(nn.Module):
 
         return datasets.CIFAR100(root='./cifar100_data', train=is_train, download=True, transform=transforms.Compose(t))
 
+
 def cycle(iterable):
     while True:
         for x in iterable:
             yield x
 
-# sklearn.model_selection.train_test_split
-import numpy as np
 
+# sklearn.model_selection.train_test_split
 
 if __name__ == '__main__':
     net = MnistNet()
@@ -196,23 +196,8 @@ if __name__ == '__main__':
     train_iterator = iter(cycle(train_loader))
     X, y = next(train_iterator)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.11, random_state = 42, stratify = y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.11, random_state=42, stratify=y)
 
-
-    print (X_test, y_test)
-    print (len(X), len(y))
-    print (len(train_loader))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    print(X_test, y_test)
+    print(len(X), len(y))
+    print(len(train_loader))

@@ -7,9 +7,8 @@ import numpy as np
 import datetime
 
 
-
-
-def main(mal_prop, num_std, defense, dataset, backdoor_attack, alpha, learning_rate=1, fading_rate=10000, momentum=0.9, batch_size=83, users_count=10, epochs=150, mal_epochs = 30, loss='MSE', output=None):
+def main(mal_prop, num_std, defense, dataset, backdoor_attack, alpha, learning_rate=1, fading_rate=10000, momentum=0.9,
+         batch_size=83, users_count=10, epochs=150, mal_epochs=30, loss='MSE', output=None):
     if output:
         def my_print(s, end='\n'):
             with open(output, 'a+') as f:
@@ -40,24 +39,22 @@ def main(mal_prop, num_std, defense, dataset, backdoor_attack, alpha, learning_r
     # print (len(Meta[1]))
     # print (len(users[0].train_loader))
 
-
     if backdoor_attack:
         test_loss, correct = the_server.test()
         accuracy = 100. * correct / test_size
 
         my_print('\nBEFORE: Test set. Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(test_loss,
-                                                                                         correct,
-                                                                                         test_size,
-                                                                                         accuracy))
-        attacker = backdoor_module.BackdoorAttack(num_std, alpha, dataset, loss=loss, num_epochs=mal_epochs, backdoor=backdoor_attack, my_print=my_print)
+                                                                                              correct,
+                                                                                              test_size,
+                                                                                              accuracy))
+        attacker = backdoor_module.BackdoorAttack(num_std, alpha, dataset, loss=loss, num_epochs=mal_epochs,
+                                                  backdoor=backdoor_attack, my_print=my_print)
     else:
         attacker = malicious.DriftAttack(num_std)
 
         my_print("\nStarting Training...")
 
     TEST_STEP = 5
-
-
 
     accuracies = []
     accuracies_epochs = []
@@ -75,9 +72,9 @@ def main(mal_prop, num_std, defense, dataset, backdoor_attack, alpha, learning_r
             accuracy = 100. * float(correct) / test_size
 
             my_print('Test set: [{:3d}] Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(epoch, test_loss,
-                                                                                             correct,
-                                                                                             test_size,
-                                                                                             accuracy))
+                                                                                                correct,
+                                                                                                test_size,
+                                                                                                accuracy))
             accuracies.append(accuracy)
             accuracies_epochs.append(epoch)
 
@@ -97,7 +94,12 @@ def main(mal_prop, num_std, defense, dataset, backdoor_attack, alpha, learning_r
     my_print(datetime.datetime.now().time())
 
     my_print("Max accuracy: {}".format(max(accuracies)))
-    np.savetxt('logs/{}_stdev_{}_{}_backdoor-{}_mal_prop_{}_users_{}_alpha_{}_lr_{}.csv'.format(dataset, num_std, defense, backdoor_attack,mal_prop, users_count, alpha, learning_rate), accuracies, delimiter=',')
+    np.savetxt(
+        'logs/{}_stdev_{}_{}_backdoor-{}_mal_prop_{}_users_{}_alpha_{}_lr_{}.csv'.format(dataset, num_std, defense,
+                                                                                         backdoor_attack, mal_prop,
+                                                                                         users_count, alpha,
+                                                                                         learning_rate), accuracies,
+        delimiter=',')
 
 
 if __name__ == "__main__":
@@ -125,7 +127,6 @@ if __name__ == "__main__":
 
     parser.add_argument('-e', '--epochs', default=300, type=int)
 
-
     parser.add_argument('-l', '--learning_rate', default=0.1, type=float,
                         help='initial learning rate')
 
@@ -140,8 +141,7 @@ if __name__ == "__main__":
     momentum = 0.9
     mal_epochs = 5
 
-
-    alpha = 4 # in the paper it's 0.2, because in the code it is used class_loss + alpha * dist_loss, which is equal to alpha=0.2 in the paper.
+    alpha = 4  # in the paper it's 0.2, because in the code it is used class_loss + alpha * dist_loss, which is equal to alpha=0.2 in the paper.
 
     if args.dataset == 'CIFAR10':
         fading_rate = 2000
@@ -149,14 +149,9 @@ if __name__ == "__main__":
         fading_rate = 10000
     elif args.dataset == 'CIFAR100':
         fading_rate = 1500
+    else:
+        exit()
 
     main(args.mal_prop, args.num_std, args.defense, args.dataset, args.backdoor,
          alpha, args.learning_rate, fading_rate, momentum, args.batch_size, args.users_count, args.epochs,
          mal_epochs=mal_epochs, output=args.output)
-
-
-
-
-
-
-
