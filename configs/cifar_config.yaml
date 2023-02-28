@@ -4,14 +4,16 @@ dataset: "cifar"
 
 total: 4
 selected: 3
-global_epochs: 50
-local_epochs: 1
+global_epochs: 20
+local_epochs: 3
 
-batch_size: 64
-lr: 0.1
-momentum: 0.9
+batch_size: 32
+lr: 0.001
+momentum: 0.0001
 lambda: 0.1
 
 # 使用迪利克雷分布模拟 non-iid
 using_dirichlet: True
 dirichlet_alpha: None
+
+save_result: True

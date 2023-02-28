@@ -26,7 +26,7 @@
 执行以下命令
 
 ```shell
-python main.py -c ./config.json
+python baseline.py -c ./config.json
 ```
 
 # Structure
