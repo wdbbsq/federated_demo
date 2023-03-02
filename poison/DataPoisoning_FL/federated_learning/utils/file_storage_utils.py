@@ -1,6 +1,7 @@
 import csv
 import json
 
+
 def generate_json_repr_for_worker(worker_id, is_worker_poisoned, test_set_results):
     """
     :param worker_id: int
@@ -8,10 +9,11 @@ def generate_json_repr_for_worker(worker_id, is_worker_poisoned, test_set_result
     :param test_set_results: list(dict)
     """
     return {
-        "worker_id" : worker_id,
-        "is_worker_poisoned" : is_worker_poisoned,
-        "test_set_results" : test_set_results
+        "worker_id": worker_id,
+        "is_worker_poisoned": is_worker_poisoned,
+        "test_set_results": test_set_results
     }
+
 
 def convert_test_results_to_json(epoch_idx, accuracy, loss, class_precision, class_recall):
     """
@@ -22,12 +24,13 @@ def convert_test_results_to_json(epoch_idx, accuracy, loss, class_precision, cla
     :param class_recall: list(float)
     """
     return {
-        "epoch" : epoch_idx,
-        "accuracy" : accuracy,
-        "loss" : loss,
-        "class_precision" : class_precision,
-        "class_recall" : class_recall
+        "epoch": epoch_idx,
+        "accuracy": accuracy,
+        "loss": loss,
+        "class_precision": class_precision,
+        "class_recall": class_recall
     }
+
 
 def save_results(results, filename):
     """
@@ -41,6 +44,7 @@ def save_results(results, filename):
 
         for experiment in results:
             writer.writerow(experiment)
+
 
 def read_results(filename):
     """
@@ -56,6 +60,7 @@ def read_results(filename):
 
     return data
 
+
 def save_results_v2(results, filename):
     """
     Save results to a file. Using format v2.
@@ -65,6 +70,7 @@ def save_results_v2(results, filename):
     """
     with open(filename, "w") as f:
         json.dump(results, f, indent=4, sort_keys=True)
+
 
 def read_results_v2(filename):
     """

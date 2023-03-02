@@ -16,6 +16,7 @@ from models.vision import LeNet, weights_init
 from utils import label_to_onehot, cross_entropy_for_onehot
 
 print(torch.__version__, torchvision.__version__)
+
 parser = argparse.ArgumentParser(description='Deep Leakage from Gradients.')
 parser.add_argument('--index', type=int, default="25",
                     help='the index for leaking images on CIFAR.')
@@ -28,8 +29,8 @@ if torch.cuda.is_available():
     device = "cuda"
 print("Running on %s" % device)
 
-dst = datasets.CIFAR100("~/.torch", download=True)
-# dst = datasets.MNIST("~/.torch", download=True)
+# dst = datasets.CIFAR100("~/.torch", download=True)
+dst = datasets.MNIST("~/.torch", download=True)
 tp = transforms.ToTensor()
 tt = transforms.ToPILImage()
 

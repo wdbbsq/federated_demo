@@ -4,7 +4,9 @@ import csv
 
 from pylab import *
 
-mpl.rcParams['font.sans-serif'] = ['Fira Code','sans-serif']
+mpl.rcParams['font.sans-serif'] = ['Fira Code', 'sans-serif']
+
+
 def Picture(dic):
     newlist = sorted(dic.items(), key=lambda x: x[1], reverse=True)
     names = []
@@ -52,7 +54,7 @@ def PicCNNEnglish():
 
 
 def PicCNN(name, title):
-    filename = "./zsq/" + name + ".csv"
+    filename = "../poison/DataPoisoning_FL/111.csv"
     trainAccList = []
     trainLossList = []
     testAccList = []
@@ -66,22 +68,22 @@ def PicCNN(name, title):
                 continue
             trainAccList.append(round(float(row[1]), 3))
             # trainLossList.append(round(float(row[2]), 2))
-            testAccList.append(round(float(row[2]), 3))
+            # testAccList.append(round(float(row[2]), 3))
             # testLossList.append(round(float(row[4]), 2))
     x = range(1, len(trainAccList) + 1)
     plt.title(title)
     # plt.title("原数据集")
     plt.xlabel("Turns")
     plt.ylabel("Accuracy")
-    plt.plot(x, trainAccList, label='MTA', color='b', linestyle='-', linewidth=1, marker='^', markevery=2)
+    plt.plot(x, trainAccList, label='without defense', color='r', linestyle='-', linewidth=1, marker='o', markevery=2)
     # plt.plot(x, trainLossList, label='TrainLoss', color='b', linestyle='--')
-    plt.plot(x, testAccList, label='BTA', color='r', linestyle='--', linewidth=1, marker='o', markevery=2)
+    # plt.plot(x, testAccList, label='BTA', color='r', linestyle='--', linewidth=1, marker='o', markevery=2)
     # plt.plot(x, testLossList, label='TestLoss', color='k', linestyle='--')
     # y_ticks = np.arange(0,1,0.1)
     # plt.yticks(y_ticks)
     plt.legend()
-    plt.savefig("./zsq/"+title+".png")
-    # plt.show()
+    # plt.savefig("./zsq/" + title + ".png")
+    plt.show()
 
 
 def getresult():
@@ -156,7 +158,39 @@ def getFACGAN(name, title):
     # plt.show()
 
 
+def plot(filename, csv_dir, csv_title, xlabel, ylabel, legend_name, save_pic=False):
+    """
+    保存图片到csv文件所在的目录
+    :param save_pic:
+    :param filename:
+    :param csv_dir:     文件目录
+    :param csv_title:   图片标题
+    :param xlabel:      x坐标名
+    :param ylabel:      y坐标名
+    :param legend_name: 图例名
+    :return:
+    """
+    csv_file = csv_dir + filename + ".csv"
+    ydata = []
+    with open(csv_file, 'r', newline='') as dataSource:
+        rows = csv.reader(dataSource)
+        for row in rows:
+            ydata.append(float(row[0]))
+    xdata = range(1, len(ydata) + 1)
+    plt.title(csv_title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.plot(xdata, ydata, label=legend_name, color='r', linestyle='-')
+
+    plt.legend()
+    if save_pic:
+        plt.savefig(csv_dir + filename + ".png")
+    plt.show()
+
+
 if __name__ == "__main__":
     # getresult()
-    PicCNN("dba", "DBA")
+    PicCNN("label_flip", "label_flip")
     # PicCNN("flex", "FLEX")
+    # plot('111', '../poison/DataPoisoning_FL/', '', 'Turns', 'Accuracy', 'label_flip')
+    exit()

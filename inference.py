@@ -1,14 +1,14 @@
 import argparse
+import random
 
 import yaml
 
-from backdoor.backdoor.attack import *
 from utils import datasets
-from backdoor.backdoor.backdoor_client import *
+from inference.inference.inference_client import *
 from baseline.server import *
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Federated Backdoor')
+    parser = argparse.ArgumentParser(description='Federated Inference')
     parser.add_argument('-c', '--conf', dest='conf')
     args = parser.parse_args()
 
@@ -16,9 +16,7 @@ if __name__ == '__main__':
         conf = yaml.load(f, Loader=yaml.FullLoader)
 
     train_datasets, eval_datasets = datasets.get_dataset("./data/", conf["dataset"])
-    # 构建后门数据
-    poisoned_train_dataloader = poison_train_dataset(conf, train_datasets)
-    poisoned_test_dataloader = poison_test_dataset(conf, train_datasets)
+
 
     server = Server(conf, eval_datasets)
     clients = []

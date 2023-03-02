@@ -3,10 +3,9 @@ import random
 
 import yaml
 
-from poison.attack import *
 from utils import datasets
-from poison.poison_client import *
-from server import *
+from poison.poison.poison_client import *
+from baseline.server import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')

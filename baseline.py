@@ -4,8 +4,8 @@ import random
 import yaml
 
 from utils import datasets
-from client import *
-from server import *
+from baseline.client import *
+from baseline.server import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Learning')

@@ -111,3 +111,4 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     save_results(worker_selection, worker_selections_files[0])
 
     logger.remove(handler)
+    exit()
