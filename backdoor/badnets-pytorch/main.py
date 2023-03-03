@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 
 from dataset import build_poisoned_training_set, build_testset
 from deeplearning import evaluate_badnets, optimizer_picker, train_one_epoch
-from models import BadNet
+from .models import BadNet
 
 parser = argparse.ArgumentParser(
     description='Reproduce the basic backdoor attack in "Badnets: Identifying vulnerabilities in the machine learning model supply chain".')

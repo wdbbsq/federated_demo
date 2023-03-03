@@ -3,7 +3,7 @@ import random
 
 import yaml
 
-from utils import datasets
+from datasets import datasets
 from baseline.client import *
 from baseline.server import *
 

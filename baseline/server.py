@@ -3,23 +3,23 @@ import torch
 
 
 class Server:
-    def __init__(self, conf, eval_dataset):
-        self.conf = conf
-        self.global_model = models.get_model(self.conf["model_name"])
+    def __init__(self, args, eval_dataset):
+        self.args = args
+        self.global_model = models.get_model(self.args.model_name)
         self.eval_loader = torch.utils.data.DataLoader(eval_dataset,
-                                                       batch_size=self.conf["batch_size"],
+                                                       batch_size=self.args.batch_size,
                                                        shuffle=True)
 
     def model_aggregate(self, weight_accumulator):
 
         # for name, sum_update in weight_accumulator.items():
-        #     scale = self.conf["selected"] / self.conf["total"]
+        #     scale = self.args.selected / self.args.total
         #     average_update = scale * sum_update
         #     model_weight = self.global_model.state_dict()[name]
         #     model_weight.add_(average_update)
 
         for name, data in self.global_model.state_dict().items():
-            update_per_layer = weight_accumulator[name] * self.conf["lambda"]
+            update_per_layer = weight_accumulator[name] * self.args.lambda_
             if data.type() != update_per_layer.type():
                 data.add_(update_per_layer.to(torch.int64))
             else:

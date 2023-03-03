@@ -1,4 +1,3 @@
-
 from tqdm import tqdm
 
 import models
@@ -6,19 +5,18 @@ import torch
 
 
 class Client:
-    def __init__(self, conf, model, train_dataset, client_id=-1, is_adversary=False):
-        self.conf = conf
-        self.local_model = models.get_model(self.conf["model_name"])
+    def __init__(self, args, train_dataset, client_id=-1, is_adversary=False):
+        self.args = args
+        self.local_model = models.get_model(self.args.model_name)
         self.client_id = client_id
-        self.train_dataset = train_dataset
         self.is_adversary = is_adversary
 
-        all_range = list(range(len(self.train_dataset)))
-        data_len = int(len(self.train_dataset) / self.conf["total"])
+        all_range = list(range(len(train_dataset)))
+        data_len = int(len(train_dataset) / self.args.total_num)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
 
-        self.train_loader = torch.utils.data.DataLoader(self.train_dataset,
-                                                        batch_size=conf["batch_size"],
+        self.train_loader = torch.utils.data.DataLoader(train_dataset,
+                                                        batch_size=args.batch_size,
                                                         sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
                                                         )
 
@@ -26,11 +24,11 @@ class Client:
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
-                                    lr=self.conf['lr'],
-                                    momentum=self.conf['momentum'])
+                                    lr=self.args.lr,
+                                    momentum=self.args.momentum)
         self.local_model.train()
 
-        for e in range(self.conf["local_epochs"]):
+        for e in range(self.args.local_epochs):
             for batch_id, batch in tqdm(enumerate(self.train_loader)):
                 data, target = batch
                 if torch.cuda.is_available():
