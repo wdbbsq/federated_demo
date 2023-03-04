@@ -20,6 +20,7 @@ def get_model(name="vgg16", pretrained=True):
     elif name == "googlenet":
         model = models.googlenet(pretrained=pretrained)
 
+
     if torch.cuda.is_available():
         return model.cuda()
     else:

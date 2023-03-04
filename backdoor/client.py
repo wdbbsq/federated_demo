@@ -1,23 +1,27 @@
 from tqdm import tqdm
+from backdoor import models
 
-import models
 import torch
 
 
 class Client:
     def __init__(self, args, train_dataset, client_id=-1, is_adversary=False):
         self.args = args
-        self.local_model = models.get_model(self.args.model_name)
+        self.local_model = models.get_model(args.model_name,
+                                            args.device,
+                                            input_channels=args.input_channels,
+                                            output_num=args.nb_classes)
         self.client_id = client_id
         self.is_adversary = is_adversary
 
         all_range = list(range(len(train_dataset)))
-        data_len = int(len(train_dataset) / self.args.total_num)
+        data_len = int(len(train_dataset) / args.total_num)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
-
+        # todo 每个客户端自己的验证集
         self.train_loader = torch.utils.data.DataLoader(train_dataset,
                                                         batch_size=args.batch_size,
-                                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
+                                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(
+                                                            train_indices)
                                                         )
 
     def local_train(self, global_model):
@@ -28,8 +32,8 @@ class Client:
                                     momentum=self.args.momentum)
         self.local_model.train()
 
-        for e in range(self.args.local_epochs):
-            for batch_id, batch in tqdm(enumerate(self.train_loader)):
+        for e in range(self.args.local_epoch):
+            for batch_id, batch in enumerate(tqdm(self.train_loader)):
                 data, target = batch
                 if torch.cuda.is_available():
                     data = data.cuda()
