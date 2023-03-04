@@ -1,5 +1,5 @@
 import numpy
-from backdoor.backdoor.attack import dataset
+from datasets import dataset
 
 
 def distribute_batches_equally(train_data_loader, num_workers):

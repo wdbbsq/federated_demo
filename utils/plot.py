@@ -54,7 +54,7 @@ def PicCNNEnglish():
 
 
 def PicCNN(name, title):
-    filename = "../poison/DataPoisoning_FL/111.csv"
+    filename = "../posion_DataPoisoning_FL/111.csv"
     trainAccList = []
     trainLossList = []
     testAccList = []
@@ -192,5 +192,5 @@ if __name__ == "__main__":
     # getresult()
     PicCNN("label_flip", "label_flip")
     # PicCNN("flex", "FLEX")
-    # plot('111', '../poison/DataPoisoning_FL/', '', 'Turns', 'Accuracy', 'label_flip')
+    # plot('111', '../poison/posion_DataPoisoning_FL/', '', 'Turns', 'Accuracy', 'label_flip')
     exit()

@@ -4,7 +4,6 @@ import random
 import yaml
 
 from datasets import datasets
-from inference.inference.inference_client import *
 from baseline.server import *
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ def main():
 
     # create related path
     pathlib.Path("./checkpoints/").mkdir(parents=True, exist_ok=True)
-    pathlib.Path("./logs/").mkdir(parents=True, exist_ok=True)
+    pathlib.Path("logs/").mkdir(parents=True, exist_ok=True)
 
     print("\n# load dataset: %s " % args.dataset)
     dataset_train, args.nb_classes = build_poisoned_training_set(is_train=True, args=args)

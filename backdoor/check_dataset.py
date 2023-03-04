@@ -57,5 +57,5 @@ def cifar10_img(file_dir):
 
 
 if __name__ == '__main__':
-    file_dir = '../../data/cifar-10-batches-py'
+    file_dir = '../data/cifar-10-batches-py'
     cifar10_img(file_dir)

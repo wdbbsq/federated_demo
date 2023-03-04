@@ -4,7 +4,6 @@ import random
 import yaml
 
 from datasets import datasets
-from poison.poison.poison_client import *
 from baseline.server import *
 
 if __name__ == '__main__':

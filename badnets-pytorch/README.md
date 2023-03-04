@@ -78,8 +78,8 @@ Pre-trained models and results can be found in `./checkpoints/` and `./logs/` di
 
 | Dataset | Trigger Label | TCA    | ASR    | Log                                | Model                                                |
 | ------- | ------------- | ------ | ------ | ---------------------------------- | ---------------------------------------------------- |
-| MNIST   | 1             | 0.9818 | 0.9995 | [log](./logs/MNIST_trigger1.csv)   | [Backdoored model](./checkpoints/badnet-MNIST.pth)   |
-| CIFAR10 | 1             | 0.5163 | 0.9311 | [log](./logs/CIFAR10_trigger1.csv) | [Backdoored model](./checkpoints/badnet-CIFAR10.pth) |
+| MNIST   | 1             | 0.9818 | 0.9995 | [log](logs/MNIST_trigger1.csv)   | [Backdoored model](./checkpoints/badnet-MNIST.pth)   |
+| CIFAR10 | 1             | 0.5163 | 0.9311 | [log](logs/CIFAR10_trigger1.csv) | [Backdoored model](./checkpoints/badnet-CIFAR10.pth) |
 
 You can use the flag `--load_local` to load the model locally without training.
 

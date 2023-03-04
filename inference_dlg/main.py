@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 import argparse
-import numpy as np
-from pprint import pprint
 
 from PIL import Image
 import matplotlib.pyplot as plt
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import grad
 import torchvision
-from torchvision import models, datasets, transforms
-from models.vision import LeNet, weights_init
-from utils import label_to_onehot, cross_entropy_for_onehot
+from torchvision import datasets, transforms
+from inference_dlg.models import LeNet, weights_init
+from inference_dlg.utils import label_to_onehot, cross_entropy_for_onehot
 
 print(torch.__version__, torchvision.__version__)
 

@@ -1,12 +1,10 @@
 import argparse
 import random
 
-import yaml
 # from datasets.data_loader_utils import *
-from utils.distributaion import *
-from backdoor.backdoor.backdoor_client import *
-from backdoor.backdoor.attack import *
-from baseline.server import *
+from backdoor_client import Client
+from attack import *
+from baseline.server import Server
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
@@ -38,11 +36,11 @@ if __name__ == '__main__':
                         help='Place to load dataset (default: ./dataset/)')
     
     # fedeerated settings
-    parser.add_argument('--total_num', type='int', default=4)
-    parser.add_argument('--k_workers', type='int', default=3, 
+    parser.add_argument('--total_num', type=int, default=4)
+    parser.add_argument('--k_workers', type=int, default=3,
                         help='clients num selected for each epoch')
-    parser.add_argument('--adversary_num', type='int', default=1)
-    parser.add_argument('--local_epoch', type='int', default=2)
+    parser.add_argument('--adversary_num', type=int, default=1)
+    parser.add_argument('--local_epoch', type=int, default=2)
 
     # poison settings 
     parser.add_argument('--poisoning_rate', type=float, default=0.1,
