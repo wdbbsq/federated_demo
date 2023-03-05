@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: /root/zsq/federated_demo/backdoor/backdoor/backdoor.py",
+            "name": "Backdoor no-defense",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/backdoor/__init__.py",
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true

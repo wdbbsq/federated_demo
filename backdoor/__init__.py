@@ -1,17 +1,22 @@
 import argparse
 import random
+import time
 
+import pandas as pd
 import torch
 
-import client
+from client import Client
+from server import Server
 from attack import *
 import server
+
+TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
 
     # base settings
-    parser.add_argument('--dataset', default='MNIST',
+    parser.add_argument('--dataset', default='CIFAR10',
                         help='Which dataset to use (MNIST or CIFAR10, default: MNIST)')
     parser.add_argument('--nb_classes', default=10, type=int,
                         help='number of the classification types')
@@ -54,8 +59,8 @@ if __name__ == '__main__':
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
-    parser.add_argument('--trigger_path', default="./triggers/trigger_white.png",
-                        help='Trigger Path (default: ./triggers/trigger_white.png)')
+    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_white.png",
+                        help='Trigger Path (default: ./backdoor/triggers/trigger_white.png)')
     parser.add_argument('--trigger_size', type=int, default=5,
                         help='Trigger Size (int, default: 5)')
     args = parser.parse_args()
@@ -71,11 +76,13 @@ if __name__ == '__main__':
 
     clients = []
     for i in range(args.total_num):
-        clients.append(client.Client(args, train_datasets, i, i in adversary_list))
+        clients.append(Client(args, train_datasets, i, i in adversary_list))
 
-    server = server.Server(args, dataset_val_clean)
-    print("\n\n")
+    server = Server(args, dataset_val_clean, dataset_val_poisoned)
 
+    status = []
+    start_time = time.time()
+    start_time_str = time.strftime(TIME_FORMAT, time.localtime())
     for e in range(args.global_epochs):
         candidates = random.sample(clients, args.k_workers)
         # 客户端上传的模型更新
@@ -84,10 +91,20 @@ if __name__ == '__main__':
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            local_update = c.local_train(server.global_model)
+            client_train_status = c.local_train(server.global_model)
+            
             for name, params in server.global_model.state_dict().items():
-                weight_accumulator[name].add_(local_update[name])
+                weight_accumulator[name].add_(client_train_status['local_update'][name])
+            
 
         server.model_aggregate(weight_accumulator)
-        acc, loss = server.model_eval()
-        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
+        test_status = server.evaluate_badnets()
+        log_status = {
+            'epoch': e,
+            **{f'test_{k}': v for k, v in test_status.items()}
+        }
+        status.append(log_status)
+        df = pd.DataFrame(status)
+        df.to_csv(f"./backdoor/logs/{start_time_str}_{args.dataset}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
+
+    print(f'Fininsh Trainning in {time.time() - start_time}\n ')

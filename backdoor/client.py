@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from backdoor import models
+import models
 
 import torch
 
@@ -32,7 +32,7 @@ class Client:
                                     momentum=self.args.momentum)
         self.local_model.train()
 
-        for e in range(self.args.local_epoch):
+        for epoch in range(self.args.local_epoch):
             for batch_id, batch in enumerate(tqdm(self.train_loader)):
                 data, target = batch
                 if torch.cuda.is_available():
@@ -45,9 +45,11 @@ class Client:
                 loss.backward()
                 # 自更新
                 optimizer.step()
-            # print("Client %d : epoch %d done." % (self.client_id, e))
         diff = dict()
         for name, data in self.local_model.state_dict().items():
             diff[name] = (data - global_model.state_dict()[name])
-        print("Client %d done." % self.client_id)
-        return diff
+        print(f'# Client {self.client_id}  loss: {loss}\n')
+        return {
+            'local_update': diff,
+            'loss': loss
+        }
