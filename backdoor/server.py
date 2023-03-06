@@ -15,10 +15,10 @@ class Server:
                                              output_num=args.nb_classes)
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
-                                           shuffle=True)
+                                           shuffle=False)
         self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
                                               batch_size=args.batch_size,
-                                              shuffle=True)
+                                              shuffle=False)
         
     def model_aggregate(self, weight_accumulator):
         for name, sum_update in weight_accumulator.items():

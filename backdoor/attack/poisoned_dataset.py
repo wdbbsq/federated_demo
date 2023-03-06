@@ -43,11 +43,7 @@ class CIFAR10Poison(CIFAR10):
         # 随机选择投毒样本
         self.poi_indices = []
         if need_idx:
-            data_pre_client = int(len(self.targets) / args.total_num)
-            for idx in range(args.total_num):
-                client_indices = indices[idx * data_pre_client : (idx + 1) * data_pre_client]
-                if idx in adversary_list:
-                    self.poi_indices.append(random.sample(client_indices, k=int(data_pre_client * self.poisoning_rate)))
+            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_num, self.poisoning_rate, adversary_list)
         else:
             self.poi_indices = random.sample(indices, k=int(len(indices) * self.poisoning_rate))
 
@@ -98,11 +94,7 @@ class MNISTPoison(MNIST):
         # 随机选择投毒样本
         self.poi_indices = []
         if need_idx:
-            data_pre_client = int(len(self.targets) / args.total_num)
-            for idx in range(args.total_num):
-                client_indices = indices[idx * data_pre_client : (idx + 1) * data_pre_client]
-                if idx in adversary_list:
-                    self.poi_indices.append(random.sample(client_indices, k=int(data_pre_client * self.poisoning_rate)))
+            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_num, self.poisoning_rate, adversary_list)
         else:
             self.poi_indices = random.sample(indices, k=int(len(indices) * self.poisoning_rate))
         print(f"Poison {len(self.poi_indices)} over {len(indices)} samples ( poisoning rate {self.poisoning_rate})")
@@ -134,6 +126,18 @@ class MNISTPoison(MNIST):
             target = self.target_transform(target)
 
         return img, target
+
+def generate_poisoned_data(indices, data_len, total_num, poisoning_rate, adversary_list):
+    """
+    get poisoned data index
+    """
+    poi_indices = []
+    data_pre_client = int(data_len / total_num)
+    for idx in range(total_num):
+        client_indices = indices[idx * data_pre_client : (idx + 1) * data_pre_client]
+        if idx in adversary_list:
+            poi_indices.append(random.sample(client_indices, k=int(data_pre_client * poisoning_rate)))
+    return poi_indices
 
 
 """

@@ -19,10 +19,12 @@ def build_poisoned_training_sets(is_train, args, adversary_list):
     print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
-        trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True, transform=transform, need_idx=True, adversary_list=adversary_list)
+        trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True, 
+                                transform=transform, need_idx=True, adversary_list=adversary_list)
         nb_classes = 10
     elif args.dataset == 'MNIST':
-        trainset = MNISTPoison(args, args.data_path, train=is_train, download=True, transform=transform, need_idx=True, adversary_list=adversary_list)
+        trainset = MNISTPoison(args, args.data_path, train=is_train, download=True,
+                               transform=transform, need_idx=True, adversary_list=adversary_list)
         nb_classes = 10
     else:
         raise NotImplementedError()
@@ -59,6 +61,19 @@ def build_testset(is_train, args):
 def build_transform(dataset):
     if dataset == "CIFAR10":
         mean, std = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
+        # transforms.Resize(size):将图片的短边缩放成size的比例，然后长边也跟着缩放，使得缩放后的图片相对于原图的长宽比不变
+        # transforms.CenterCrop(size):从图像的中心位置裁剪指定大小的图像
+        # ToTensor():将图像由PIL转换为Tensor
+        # transform.Normalize():把0-1变换到(-1,1)
+        # image = (image - mean) / std
+        # 其中mean和std分别通过(0.5, 0.5, 0.5)和(0.2, 0.2, 0.2)进行指定。原来的0-1最小值0则变成(0-0.5)/0.5=-1，而最大值1则变成(1-0.5)/0.5=1
+        # trans = transforms.Compose([
+        #     transforms.Resize(224),
+        #     transforms.CenterCrop(224),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.5, 0.5, 0.5),(0.2, 0.2, 0.2))
+        # ])
+        # return trans, None
     elif dataset == "MNIST":
         mean, std = (0.5,), (0.5,)
     else:

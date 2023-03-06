@@ -23,19 +23,19 @@ if __name__ == '__main__':
     parser.add_argument('--load_local', action='store_true',
                         help='train model or directly load model (default true, if you add this param, then load '
                              'trained local model to evaluate the performance)')
-    parser.add_argument('--model_name', default='badnets',
+    parser.add_argument('--model_name', default='resnet18',
                         help='[badnets, resnet18]')
     parser.add_argument('--loss', default='mse',
                         help='Which loss function to use (mse or cross, default: mse)')
     parser.add_argument('--optimizer', default='sgd',
                         help='Which optimizer to use (sgd or adam, default: sgd)')
-    parser.add_argument('--global_epochs', default=100,
+    parser.add_argument('--global_epochs', default=300,
                         help='Number of epochs to train backdoor model, default: 100')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
     parser.add_argument('--test_batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
-    parser.add_argument('--num_workers', type=int, default=0,
+    parser.add_argument('--num_workers', type=int, default=2,
                         help='')
     parser.add_argument('--data_path', default='./data/',
                         help='Place to load dataset (default: ./dataset/)')
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # poison settings
     parser.add_argument('--poisoning_rate', type=float, default=0.1,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
-    parser.add_argument('--trigger_label', type=int, default=1,
+    parser.add_argument('--trigger_label', type=int, default=0,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
     parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_white.png",
                         help='Trigger Path (default: ./backdoor/triggers/trigger_white.png)')
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            client_train_status = c.local_train(server.global_model)
+            client_train_status = c.local_train(server.global_model, e)
             
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(client_train_status['local_update'][name])

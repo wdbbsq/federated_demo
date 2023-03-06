@@ -2,6 +2,7 @@ from tqdm import tqdm
 import models
 
 import torch
+from torch.utils.data import DataLoader
 
 
 class Client:
@@ -18,13 +19,13 @@ class Client:
         data_len = int(len(train_dataset) / args.total_num)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
         # todo 每个客户端自己的验证集
-        self.train_loader = torch.utils.data.DataLoader(train_dataset,
-                                                        batch_size=args.batch_size,
-                                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(
-                                                            train_indices)
-                                                        )
+        self.train_loader = DataLoader(train_dataset,
+                                       batch_size=args.batch_size,
+                                       num_workers=args.num_workers,
+                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
+                                       )
 
-    def local_train(self, global_model):
+    def local_train(self, global_model, global_epoch):
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
@@ -48,7 +49,7 @@ class Client:
         diff = dict()
         for name, data in self.local_model.state_dict().items():
             diff[name] = (data - global_model.state_dict()[name])
-        print(f'# Client {self.client_id}  loss: {loss}\n')
+        print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
         return {
             'local_update': diff,
             'loss': loss

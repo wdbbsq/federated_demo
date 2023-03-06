@@ -12,6 +12,26 @@
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true
+        },
+        {
+            "name": "Backdoor no-attack",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/backdoor/__init__.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--adversary_num", "0"
+            ],
+            "justMyCode": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Backdoors",
+            "configurations": [
+                "Backdoor no-defense",
+                "Backdoor no-attack"
+            ]
         }
     ]
 }
