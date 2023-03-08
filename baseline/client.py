@@ -32,7 +32,7 @@ class Client:
         training_loss = 0
         self.local_model.train()
         for e in range(self.args.local_epochs):
-            for batch_id, batch in tqdm(enumerate(self.train_loader)):
+            for batch_id, batch in enumerate(tqdm(self.train_loader)):
                 data, target = batch
                 if torch.cuda.is_available():
                     data = data.cuda()
@@ -50,7 +50,4 @@ class Client:
             local_update[name] = (data - global_model.state_dict()[name])
         training_loss /= len(self.train_loader)
         print(f'# Epoch: {global_epoch} Client {self.client_id} loss: {training_loss} \n')
-        return {
-            'local_update': local_update,
-            'loss': training_loss
-        }
+        return local_update
