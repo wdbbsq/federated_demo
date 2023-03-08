@@ -5,7 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Backdoor no-defense",
+            "name": "test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/playground/__init__.py",
+            "console": "integratedTerminal",
+            "args": [],
+            "justMyCode": true
+        },
+        {
+            "name": "Backdoor mnist",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/backdoor/__init__.py",
@@ -14,14 +23,25 @@
             "justMyCode": true
         },
         {
-            "name": "Backdoor no-attack",
+            "name": "Backdoor cifar",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/backdoor/__init__.py",
             "console": "integratedTerminal",
             "args": [
-                "--adversary_num", "0"
+                "--dataset", "CIFAR10",
+                "--model_name", "resnet18"
+                // "--adversary_num", "0"
             ],
+            "justMyCode": true
+        },
+        {
+            "name": "Baseline",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/baseline/main.py",
+            "console": "integratedTerminal",
+            "args": [],
             "justMyCode": true
         }
     ],
@@ -29,8 +49,7 @@
         {
             "name": "Backdoors",
             "configurations": [
-                "Backdoor no-defense",
-                "Backdoor no-attack"
+
             ]
         }
     ]

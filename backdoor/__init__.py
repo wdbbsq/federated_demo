@@ -10,26 +10,27 @@ from server import Server
 from attack import *
 import server
 
+
 TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
 
     # base settings
-    parser.add_argument('--dataset', default='CIFAR10',
+    parser.add_argument('--dataset', default='MNIST',
                         help='Which dataset to use (MNIST or CIFAR10, default: MNIST)')
     parser.add_argument('--nb_classes', default=10, type=int,
                         help='number of the classification types')
     parser.add_argument('--load_local', action='store_true',
                         help='train model or directly load model (default true, if you add this param, then load '
                              'trained local model to evaluate the performance)')
-    parser.add_argument('--model_name', default='resnet18',
+    parser.add_argument('--model_name', default='badnets',
                         help='[badnets, resnet18]')
     parser.add_argument('--loss', default='mse',
                         help='Which loss function to use (mse or cross, default: mse)')
     parser.add_argument('--optimizer', default='sgd',
                         help='Which optimizer to use (sgd or adam, default: sgd)')
-    parser.add_argument('--global_epochs', default=300,
+    parser.add_argument('--global_epochs', default=100,
                         help='Number of epochs to train backdoor model, default: 100')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
@@ -105,6 +106,6 @@ if __name__ == '__main__':
         }
         status.append(log_status)
         df = pd.DataFrame(status)
-        df.to_csv(f"./backdoor/logs/{start_time_str}_{args.dataset}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
+        df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{start_time_str}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
 
     print(f'Fininsh Trainning in {time.time() - start_time}\n ')

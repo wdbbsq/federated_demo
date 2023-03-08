@@ -4,15 +4,23 @@ import torch.nn.functional as F
 
 from torchvision import models
 from .badnet import BadNet
+from .resnet import build_resnet, ResNetWithOutput
 
-
-def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=0):
+def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=10):
     if name == "resnet18":
-        # model = MyVGGNet()
-        model = models.resnet18(pretrained=pretrained)
-        model.fc = nn.Linear(512, 10)
-        model = model.to(device)
-        # model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1).to(device)
+        # model = models.resnet18(pretrained=pretrained)
+        # fc_in_channles = model.fc.in_features
+        # model.fc = nn.Sequential(
+        #     nn.Linear(fc_in_channles, output_num),
+        #     nn.Softmax(dim=-1)
+        # )
+        model = build_resnet()
+        # model = ResNetWithOutput(models.resnet18(pretrained=pretrained))
+        # model.fc = nn.Sequential(
+        #     nn.Linear(in_features=512, out_features=output_num),
+        #     nn.Softmax(dim=-1)
+        # )
+        # model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
     elif name == "densenet121":
@@ -28,12 +36,10 @@ def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_c
     elif name == "googlenet":
         model = models.googlenet(pretrained=pretrained)
     elif name == 'badnets':
-        model = BadNet(input_channels, output_num).to(device)
+        model = BadNet(input_channels, output_num)
+    # print(model)
+    return model.to(device)
 
-    if torch.cuda.is_available():
-        return model.cuda()
-    else:
-        return model
 
 class MyVGGNet(nn.Module):
 

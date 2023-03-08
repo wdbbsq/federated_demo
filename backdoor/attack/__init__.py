@@ -15,8 +15,8 @@ def build_init_data(dataname, download, dataset_path):
 
 
 def build_poisoned_training_sets(is_train, args, adversary_list):
-    transform, detransform = build_transform(args.dataset)
-    print("Transform = ", transform)
+    transform, detransform = build_transform(args.dataset, is_train=True)
+    # print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
         trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True, 
@@ -38,7 +38,7 @@ def build_poisoned_training_sets(is_train, args, adversary_list):
 
 def build_testset(is_train, args):
     transform, detransform = build_transform(args.dataset)
-    print("Transform = ", transform)
+    # print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
         testset_clean = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
@@ -58,9 +58,23 @@ def build_testset(is_train, args):
     return testset_clean, testset_poisoned
 
 
-def build_transform(dataset):
+def build_transform(dataset, is_train=False):
     if dataset == "CIFAR10":
-        mean, std = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
+        if is_train:
+            transform_train = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
+            return transform_train, None
+        else:
+            transform_test = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
+            return transform_test, None
+
         # transforms.Resize(size):将图片的短边缩放成size的比例，然后长边也跟着缩放，使得缩放后的图片相对于原图的长宽比不变
         # transforms.CenterCrop(size):从图像的中心位置裁剪指定大小的图像
         # ToTensor():将图像由PIL转换为Tensor

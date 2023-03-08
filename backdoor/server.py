@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
 import models
 
+_args = None
 
 class Server:
     def __init__(self, args, dataset_val_clean, dataset_val_poisoned):
@@ -37,37 +38,6 @@ class Server:
         #     else:
         #         data.add_(update_per_layer)
 
-    def model_eval(self):
-        # 不启用Batch Normalization和Dropout，
-        # 保证测试过程中，Batch Normalization层的均值和方差不变
-        self.global_model.eval()
-
-        total_loss = 0.0
-        correct = 0
-        dataset_size = 0
-        for batch_id, batch in enumerate(self.eval_loader):
-            data, target = batch
-            dataset_size += data.size()[0]
-
-            if torch.cuda.is_available():
-                data = data.cuda()
-                target = target.cuda()
-
-            output = self.global_model(data)
-
-            # sum up batch loss
-            total_loss += torch.nn.functional.cross_entropy(output,
-                                                            target,
-                                                            reduction='sum').item()
-            # get the index of the max log-probability
-            pred = output.data.max(1)[1]
-            correct += pred.eq(target.data.view_as(pred)).sum().item()
-
-        acc = 100.0 * (float(correct) / float(dataset_size))
-        total_l = total_loss / dataset_size
-
-        return acc, total_l
-
     def eval(self, data_loader, model, device, print_perform=False):
         criterion = torch.nn.CrossEntropyLoss()
         model.eval()  # switch to eval status
@@ -78,7 +48,14 @@ class Server:
             batch_x = batch_x.to(device, non_blocking=True)
             batch_y = batch_y.to(device, non_blocking=True)
 
-            batch_y_predict = model(batch_x)
+            if self.args.dataset == 'CIFAR10':
+                # batch_y_predict, out_1000 = model(batch_x)
+                batch_y_predict = model(batch_x)
+            elif self.args.dataset == 'MNIST':
+                batch_y_predict = model(batch_x)
+            else:        
+                raise NotImplementedError(f'Unkown dataset {self.args.dataset}')
+            
             loss = criterion(batch_y_predict, batch_y)
             batch_y_predict = torch.argmax(batch_y_predict, dim=1)
             y_true.append(batch_y)
@@ -100,7 +77,36 @@ class Server:
     def evaluate_badnets(self):
         ta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
         asr = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
+        # ta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
+        # asr = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
         return {
             'clean_acc': ta['acc'], 'clean_loss': ta['loss'],
             'asr': asr['acc'], 'asr_loss': asr['loss'],
         }
+
+def model_eval(global_model, data_loader, device):
+    # 不启用Batch Normalization和Dropout，
+    # 保证测试过程中，Batch Normalization层的均值和方差不变
+    global_model.eval()
+
+    total_loss = 0.0
+    correct = 0
+    dataset_size = 0
+    for batch_id, batch in enumerate(data_loader):
+        data, target = batch
+        dataset_size += data.size()[0]
+        if torch.cuda.is_available():
+            data = data.cuda()
+            target = target.cuda()
+        output = global_model(data)
+        # sum up batch loss
+        total_loss += torch.nn.functional.cross_entropy(output,
+                                                        target,
+                                                        reduction='sum').item()
+        # get the index of the max log-probability
+        pred = output.data.max(1)[1]
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+    return {
+        'acc': (float(correct) / float(dataset_size)),
+        'loss': total_loss / dataset_size
+    }

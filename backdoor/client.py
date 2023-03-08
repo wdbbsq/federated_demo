@@ -6,8 +6,11 @@ from torch.utils.data import DataLoader
 
 
 class Client:
+
     def __init__(self, args, train_dataset, client_id=-1, is_adversary=False):
         self.args = args
+        self.device = args.device
+        self.local_epoch = args.local_epoch
         self.local_model = models.get_model(args.model_name,
                                             args.device,
                                             input_channels=args.input_channels,
@@ -33,15 +36,21 @@ class Client:
                                     momentum=self.args.momentum)
         self.local_model.train()
 
-        for epoch in range(self.args.local_epoch):
-            for batch_id, batch in enumerate(tqdm(self.train_loader)):
-                data, target = batch
-                if torch.cuda.is_available():
-                    data = data.cuda()
-                    target = target.cuda()
+        for epoch in range(self.local_epoch):
+            for batch_id, (batch_x, batch_y) in enumerate(tqdm(self.train_loader)):
+                batch_x = batch_x.to(self.device, non_blocking=True)
+                batch_y = batch_y.to(self.device, non_blocking=True)
                 optimizer.zero_grad()
-                output = self.local_model(data)
-                loss = torch.nn.functional.cross_entropy(output, target)
+
+                if self.args.dataset == 'CIFAR10':
+                    # output, out_1000 = self.local_model(batch_x)
+                    output = self.local_model(batch_x)
+                elif self.args.dataset == 'MNIST':
+                    output = self.local_model(batch_x)
+                else:        
+                    raise NotImplementedError(f'Unkown dataset {self.args.dataset}')
+            
+                loss = torch.nn.functional.cross_entropy(output, batch_y)
                 # 计算梯度
                 loss.backward()
                 # 自更新
