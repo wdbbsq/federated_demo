@@ -1,5 +1,5 @@
 from tqdm import tqdm
-import models
+import model
 
 import torch
 from torch.utils.data import DataLoader
@@ -11,7 +11,7 @@ class Client:
         self.args = args
         self.device = args.device
         self.local_epoch = args.local_epoch
-        self.local_model = models.get_model(args.model_name,
+        self.local_model = model.get_model(args.model_name,
                                             args.device,
                                             input_channels=args.input_channels,
                                             output_num=args.nb_classes)

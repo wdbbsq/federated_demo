@@ -5,9 +5,9 @@ import time
 import torch
 import pandas as pd
 
-from baseline.client import Client
-from baseline.server import Server
-from datasets import datasets
+from client import Client
+from server import Server
+from utils import get_dataset
 
 TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    train_datasets, eval_datasets = datasets.get_dataset("./data/", args.dataset)
+    train_datasets, eval_datasets = get_dataset("./data/", args.dataset)
     server = Server(args, eval_datasets)
     clients = []
     for client_id in range(args.total_workers):

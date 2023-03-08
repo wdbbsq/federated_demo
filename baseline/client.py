@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 
-import models
+from utils import init_model 
 from torch.utils.data import DataLoader
 
 
@@ -10,7 +10,7 @@ class Client:
     def __init__(self, args, train_dataset, id=-1):
         self.args = args
         self.client_id = id
-        self.local_model = models.init_model(self.args.model_name)
+        self.local_model = init_model(self.args.model_name)
         self.train_dataset = train_dataset
 
         all_range = list(range(len(self.train_dataset)))

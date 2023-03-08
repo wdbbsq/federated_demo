@@ -3,14 +3,13 @@ from torch.utils.data import DataLoader
 
 from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
-import models
+import model
 
-_args = None
 
 class Server:
     def __init__(self, args, dataset_val_clean, dataset_val_poisoned):
         self.args = args
-        self.global_model = models.get_model(args.model_name,
+        self.global_model = model.get_model(args.model_name,
                                              args.device,
                                              input_channels=args.input_channels,
                                              output_num=args.nb_classes)
