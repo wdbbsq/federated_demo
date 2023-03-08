@@ -3,11 +3,11 @@ from torchvision import datasets, transforms
 
 
 def get_dataset(path, name):
-    if name == 'mnist':
+    if name == 'MNIST':
         train_dataset = datasets.MNIST(path, train=True, download=True, transform=transforms.ToTensor())
         eval_dataset = datasets.MNIST(path, train=False, transform=transforms.ToTensor())
 
-    elif name == 'cifar':
+    elif name == 'CIFAR10':
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -23,5 +23,7 @@ def get_dataset(path, name):
         train_dataset = datasets.CIFAR10(path, train=True, download=True,
                                          transform=transform_train)
         eval_dataset = datasets.CIFAR10(path, train=False, transform=transform_test)
+    else:
+        raise NotImplementedError()
 
     return train_dataset, eval_dataset

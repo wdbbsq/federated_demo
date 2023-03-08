@@ -1,37 +1,37 @@
-import datetime
-
+import torch
 from tqdm import tqdm
 
 import models
-import torch
+from torch.utils.data import DataLoader
 
 
 class Client:
 
-    def __init__(self, conf, model, train_dataset, id=-1):
-        self.conf = conf
-        self.local_model = models.get_model(self.conf["model_name"])
+    def __init__(self, args, train_dataset, id=-1):
+        self.args = args
         self.client_id = id
+        self.local_model = models.init_model(self.args.model_name)
         self.train_dataset = train_dataset
 
         all_range = list(range(len(self.train_dataset)))
-        data_len = int(len(self.train_dataset) / self.conf["total"])
+        data_len = int(len(self.train_dataset) / self.args.total_workers)
         train_indices = all_range[id * data_len: (id + 1) * data_len]
 
-        self.train_loader = torch.utils.data.DataLoader(self.train_dataset,
-                                                        batch_size=conf["batch_size"],
-                                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
-                                                        )
+        self.train_loader = DataLoader(self.train_dataset,
+                                       batch_size=args.batch_size,
+                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(
+                                           train_indices)
+                                       )
 
-    def local_train(self, global_model):
+    def local_train(self, global_model, global_epoch):
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
-                                    lr=self.conf['lr'],
-                                    momentum=self.conf['momentum'])
+                                    lr=self.args.lr,
+                                    momentum=self.args.momentum)
+        training_loss = 0
         self.local_model.train()
-
-        for e in range(self.conf["local_epochs"]):
+        for e in range(self.args.local_epochs):
             for batch_id, batch in tqdm(enumerate(self.train_loader)):
                 data, target = batch
                 if torch.cuda.is_available():
@@ -44,9 +44,13 @@ class Client:
                 loss.backward()
                 # 自更新
                 optimizer.step()
-            # print("Client %d : epoch %d done." % (self.client_id, e))
-        diff = dict()
+                training_loss += loss
+        local_update = dict()
         for name, data in self.local_model.state_dict().items():
-            diff[name] = (data - global_model.state_dict()[name])
-        print("Client %d done." % self.client_id)
-        return diff
+            local_update[name] = (data - global_model.state_dict()[name])
+        training_loss /= len(self.train_loader)
+        print(f'# Epoch: {global_epoch} Client {self.client_id} loss: {training_loss} \n')
+        return {
+            'local_update': local_update,
+            'loss': training_loss
+        }

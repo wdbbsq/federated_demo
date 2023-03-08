@@ -93,10 +93,9 @@ if __name__ == '__main__':
 
         for c in candidates:
             client_train_status = c.local_train(server.global_model, e)
-            
+            # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(client_train_status['local_update'][name])
-            
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()
