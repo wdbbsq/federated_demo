@@ -30,7 +30,7 @@ if __name__ == '__main__':
                         help='Which loss function to use (mse or cross, default: mse)')
     parser.add_argument('--optimizer', default='sgd',
                         help='Which optimizer to use (sgd or adam, default: sgd)')
-    parser.add_argument('--global_epochs', default=100,
+    parser.add_argument('--global_epochs', type=int, default=100,
                         help='Number of epochs to train backdoor model, default: 100')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
@@ -73,7 +73,8 @@ if __name__ == '__main__':
     dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
 
     args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    args.input_channels = train_datasets.channels
+    # args.input_channels = train_datasets.channels
+    args.input_channels = 10
 
     clients = []
     for i in range(args.total_num):
@@ -92,10 +93,10 @@ if __name__ == '__main__':
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            client_train_status = c.local_train(server.global_model, e)
+            local_update = c.local_train(server.global_model, e)
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
-                weight_accumulator[name].add_(client_train_status['local_update'][name])
+                weight_accumulator[name].add_(local_update[name])
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()

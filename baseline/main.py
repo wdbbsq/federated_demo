@@ -27,29 +27,29 @@ if __name__ == '__main__':
                         help='Which loss function to use (mse or cross, default: mse)')
     parser.add_argument('--optimizer', default='sgd',
                         help='Which optimizer to use (sgd or adam, default: sgd)')
-    parser.add_argument('--global_epochs', default=50,
+    parser.add_argument('--global_epochs', default=30,
                         help='Number of epochs to train backdoor model, default: 100')
-    parser.add_argument('--batch_size', type=int, default=64,
-                        help='Batch size to split dataset, default: 64')
-    parser.add_argument('--test_batch_size', type=int, default=64,
-                        help='Batch size to split dataset, default: 64')
     parser.add_argument('--num_workers', type=int, default=2,
                         help='')
     parser.add_argument('--data_path', default='./data/',
                         help='Place to load dataset (default: ./dataset/)')
 
-    parser.add_argument('--lr', type=float, default=0.01,
+    parser.add_argument('--batch_size', type=int, default=32,
+                        help='Batch size to split dataset, default: 32')
+    parser.add_argument('--test_batch_size', type=int, default=64,
+                        help='Batch size to split dataset, default: 64')
+    parser.add_argument('--lr', type=float, default=0.001,
                         help='Learning rate of the model, default: 0.001')
-    parser.add_argument('--lambda_', type=float, default=0.01,
+    parser.add_argument('--lambda_', type=float, default=0.1,
                         help='')
     parser.add_argument('--momentum', type=float, default=0.0001,
                         help='')
 
     # federated settings
-    parser.add_argument('--total_workers', type=int, default=4)
-    parser.add_argument('--k_workers', type=int, default=3,
+    parser.add_argument('--total_workers', type=int, default=10)
+    parser.add_argument('--k_workers', type=int, default=5,
                         help='clients num selected for each epoch')
-    parser.add_argument('--local_epochs', type=int, default=1)
+    parser.add_argument('--local_epochs', type=int, default=3)
 
     args = parser.parse_args()
 

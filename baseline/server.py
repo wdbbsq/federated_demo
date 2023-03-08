@@ -50,7 +50,7 @@ class Server:
             pred = output.data.max(1)[1]
             correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
 
-        acc = 100.0 * (float(correct) / float(dataset_size))
+        acc = float(correct) / float(dataset_size)
         total_l = total_loss / dataset_size
 
         return acc, total_l

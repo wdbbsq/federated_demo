@@ -55,11 +55,8 @@ class Client:
                 loss.backward()
                 # 自更新
                 optimizer.step()
-        diff = dict()
+        local_update = dict()
         for name, data in self.local_model.state_dict().items():
-            diff[name] = (data - global_model.state_dict()[name])
+            local_update[name] = (data - global_model.state_dict()[name])
         print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
-        return {
-            'local_update': diff,
-            'loss': loss
-        }
+        return local_update

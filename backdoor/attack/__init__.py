@@ -19,6 +19,7 @@ def build_poisoned_training_sets(is_train, args, adversary_list):
     # print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
+        # trainset = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
         trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True, 
                                 transform=transform, need_idx=True, adversary_list=adversary_list)
         nb_classes = 10

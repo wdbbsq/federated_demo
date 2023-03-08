@@ -30,7 +30,18 @@
             "console": "integratedTerminal",
             "args": [
                 "--dataset", "CIFAR10",
-                "--model_name", "resnet18"
+                "--model_name", "resnet18",
+                
+                "--global_epochs", "30",
+                "--batch_size", "32",
+                "--lr", "0.001",
+                "--lambda_", "0.1",
+                "--momentum", "0.0001",
+
+                "--total_num", "10",
+                "--k_workers", "5",
+                "--local_epoch", "3"
+
                 // "--adversary_num", "0"
             ],
             "justMyCode": true

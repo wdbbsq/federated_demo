@@ -15,27 +15,27 @@ class Server:
                                              output_num=args.nb_classes)
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
-                                           shuffle=False)
+                                           shuffle=True)
         self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
                                               batch_size=args.batch_size,
-                                              shuffle=False)
+                                              shuffle=True)
         
     def model_aggregate(self, weight_accumulator):
-        for name, sum_update in weight_accumulator.items():
-            scale = self.args.k_workers / self.args.total_num
-            average_update = scale * sum_update
-            model_weight = self.global_model.state_dict()[name]
-            if model_weight.type() == average_update.type():
-                model_weight.add_(average_update)
-            else:
-                model_weight.add_(average_update.to(torch.int64))
-
-        # for name, data in self.global_model.state_dict().items():
-        #     update_per_layer = weight_accumulator[name] * self.args.lambda_
-        #     if data.type() != update_per_layer.type():
-        #         data.add_(update_per_layer.to(torch.int64))
+        # for name, sum_update in weight_accumulator.items():
+        #     scale = self.args.k_workers / self.args.total_num
+        #     average_update = scale * sum_update
+        #     model_weight = self.global_model.state_dict()[name]
+        #     if model_weight.type() == average_update.type():
+        #         model_weight.add_(average_update)
         #     else:
-        #         data.add_(update_per_layer)
+        #         model_weight.add_(average_update.to(torch.int64))
+
+        for name, data in self.global_model.state_dict().items():
+            update_per_layer = weight_accumulator[name] * self.args.lambda_
+            if data.type() != update_per_layer.type():
+                data.add_(update_per_layer.to(torch.int64))
+            else:
+                data.add_(update_per_layer)
 
     def eval(self, data_loader, model, device, print_perform=False):
         criterion = torch.nn.CrossEntropyLoss()
