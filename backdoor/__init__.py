@@ -1,6 +1,7 @@
 import argparse
 import random
 import time
+from typing import List
 
 import pandas as pd
 import torch
@@ -12,6 +13,16 @@ import server
 
 
 TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
+
+def sample_candidates(clients: List[Client], clean_clients, evil_clients, epoch, args):
+    """
+    保证恶意客户端在指定轮次一定能发起攻击
+    """
+    if len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]:
+        args.attack_epochs.pop(0)
+        return evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
+    else:
+        return random.sample(clients, args.k_workers)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
@@ -49,24 +60,29 @@ if __name__ == '__main__':
                         help='')
 
     # federated settings
-    parser.add_argument('--total_num', type=int, default=4)
+    parser.add_argument('--total_workers', type=int, default=4)
     parser.add_argument('--k_workers', type=int, default=3,
                         help='clients num selected for each epoch')
     parser.add_argument('--adversary_num', type=int, default=1)
-    parser.add_argument('--local_epoch', type=int, default=2)
+    parser.add_argument('--local_epochs', type=int, default=2)
 
     # poison settings
     parser.add_argument('--poisoning_rate', type=float, default=0.1,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
-    parser.add_argument('--trigger_label', type=int, default=0,
+    parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
     parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_white.png",
                         help='Trigger Path (default: ./backdoor/triggers/trigger_white.png)')
     parser.add_argument('--trigger_size', type=int, default=5,
                         help='Trigger Size (int, default: 5)')
+    parser.add_argument('--need_scale', type=bool, default=False)
+    parser.add_argument('--weight_scale', type=int, default=100,
+                        help='恶意更新缩放比例')
+    parser.add_argument('--attack_epochs', type=list, default=list(range(25)),
+                        help='发起攻击的轮次，默认每轮训练都进行攻击')
     args = parser.parse_args()
 
-    adversary_list = random.sample(range(args.total_num), args.adversary_num)
+    adversary_list = random.sample(range(args.total_workers), args.adversary_num)
     # 初始化数据集
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args,
                                                                    adversary_list=adversary_list)
@@ -77,23 +93,30 @@ if __name__ == '__main__':
     args.input_channels = 10
 
     clients = []
-    for i in range(args.total_num):
+    clean_clients = []
+    evil_clients = []
+    for i in range(args.total_workers):
         clients.append(Client(args, train_datasets, i, i in adversary_list))
+        if i in adversary_list:
+            evil_clients.append(clients[i])
+        else:
+            clean_clients.append(clients[i])
 
     server = Server(args, dataset_val_clean, dataset_val_poisoned)
 
     status = []
     start_time = time.time()
     start_time_str = time.strftime(TIME_FORMAT, time.localtime())
-    for e in range(args.global_epochs):
+    for epoch in range(args.global_epochs):
         candidates = random.sample(clients, args.k_workers)
+        # candidates = sample_candidates(clients, clean_clients, evil_clients, epoch, args)
         # 客户端上传的模型更新
         weight_accumulator = {}
         for name, params in server.global_model.state_dict().items():
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            local_update = c.local_train(server.global_model, e)
+            local_update = c.local_train(server.global_model, epoch)
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
@@ -101,11 +124,11 @@ if __name__ == '__main__':
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()
         log_status = {
-            'epoch': e,
+            'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}
         }
         status.append(log_status)
         df = pd.DataFrame(status)
-        df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{start_time_str}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
+        df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_{start_time_str}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
 
     print(f'Fininsh Trainning in {time.time() - start_time}\n ')

@@ -22,7 +22,7 @@ class Server:
         
     def model_aggregate(self, weight_accumulator):
         # for name, sum_update in weight_accumulator.items():
-        #     scale = self.args.k_workers / self.args.total_num
+        #     scale = self.args.k_workers / self.args.total_workers
         #     average_update = scale * sum_update
         #     model_weight = self.global_model.state_dict()[name]
         #     if model_weight.type() == average_update.type():

@@ -1,4 +1,5 @@
 from tqdm import tqdm
+from typing import Dict
 import model
 
 import torch
@@ -10,7 +11,7 @@ class Client:
     def __init__(self, args, train_dataset, client_id=-1, is_adversary=False):
         self.args = args
         self.device = args.device
-        self.local_epoch = args.local_epoch
+        self.local_epochs = args.local_epochs
         self.local_model = model.get_model(args.model_name,
                                             args.device,
                                             input_channels=args.input_channels,
@@ -19,7 +20,7 @@ class Client:
         self.is_adversary = is_adversary
 
         all_range = list(range(len(train_dataset)))
-        data_len = int(len(train_dataset) / args.total_num)
+        data_len = int(len(train_dataset) / args.total_workers)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
         # todo 每个客户端自己的验证集
         self.train_loader = DataLoader(train_dataset,
@@ -36,7 +37,7 @@ class Client:
                                     momentum=self.args.momentum)
         self.local_model.train()
 
-        for epoch in range(self.local_epoch):
+        for epoch in range(self.local_epochs):
             for batch_id, (batch_x, batch_y) in enumerate(tqdm(self.train_loader)):
                 batch_x = batch_x.to(self.device, non_blocking=True)
                 batch_y = batch_y.to(self.device, non_blocking=True)
@@ -58,5 +59,11 @@ class Client:
         local_update = dict()
         for name, data in self.local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
+        if self.is_adversary and self.args.need_scale:
+            scale_upadate(self.args.weight_scale, local_update)
         print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
         return local_update
+
+def scale_upadate(weight_scale: int, local_update: Dict[str, torch.Tensor]):
+    for name, value in local_update.items():
+        value.mul_(weight_scale)
