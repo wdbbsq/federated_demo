@@ -10,9 +10,9 @@ class Server:
     def __init__(self, args, dataset_val_clean, dataset_val_poisoned):
         self.args = args
         self.global_model = model.get_model(args.model_name,
-                                             args.device,
-                                             input_channels=args.input_channels,
-                                             output_num=args.nb_classes)
+                                            args.device,
+                                            input_channels=args.input_channels,
+                                            output_num=args.nb_classes)
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
                                            shuffle=True)
@@ -74,13 +74,13 @@ class Server:
         }
 
     def evaluate_badnets(self):
-        ta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
-        asr = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
-        # ta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
-        # asr = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
+        mta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
+        bta = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
+        # mta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
+        # bta = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
         return {
-            'clean_acc': ta['acc'], 'clean_loss': ta['loss'],
-            'asr': asr['acc'], 'asr_loss': asr['loss'],
+            'clean_acc': mta['acc'], 'clean_loss': mta['loss'],
+            'bta': bta['acc'], 'asr_loss': bta['loss'],
         }
 
 def model_eval(global_model, data_loader, device):

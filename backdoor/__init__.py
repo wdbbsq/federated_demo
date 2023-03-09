@@ -14,16 +14,6 @@ import server
 
 TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
-def sample_candidates(clients: List[Client], clean_clients, evil_clients, epoch, args):
-    """
-    保证恶意客户端在指定轮次一定能发起攻击
-    """
-    if len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]:
-        args.attack_epochs.pop(0)
-        return evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
-    else:
-        return random.sample(clients, args.k_workers)
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
 
@@ -78,8 +68,13 @@ if __name__ == '__main__':
     parser.add_argument('--need_scale', type=bool, default=False)
     parser.add_argument('--weight_scale', type=int, default=100,
                         help='恶意更新缩放比例')
-    parser.add_argument('--attack_epochs', type=list, default=list(range(25)),
-                        help='发起攻击的轮次，默认每轮训练都进行攻击')
+    epochs = list(range(40))
+    parser.add_argument('--attack_epochs', type=list, default=epochs,
+                        help='发起攻击的轮次，默认从15轮训练开始攻击')
+    
+    # defense settings
+    parser.add_argument('--defense', default='None', help='[None, Flex]')
+
     args = parser.parse_args()
 
     adversary_list = random.sample(range(args.total_workers), args.adversary_num)
@@ -108,15 +103,21 @@ if __name__ == '__main__':
     start_time = time.time()
     start_time_str = time.strftime(TIME_FORMAT, time.localtime())
     for epoch in range(args.global_epochs):
-        candidates = random.sample(clients, args.k_workers)
-        # candidates = sample_candidates(clients, clean_clients, evil_clients, epoch, args)
+        # 本轮迭代是否进行攻击
+        attack_now = len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
+        if attack_now:
+            args.attack_epochs.pop(0)
+            candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
+        else:
+            candidates = random.sample(clients, args.k_workers)
+
         # 客户端上传的模型更新
-        weight_accumulator = {}
+        weight_accumulator = dict()
         for name, params in server.global_model.state_dict().items():
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            local_update = c.local_train(server.global_model, epoch)
+            local_update = c.local_train(server.global_model, epoch, attack_now)
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
@@ -129,6 +130,7 @@ if __name__ == '__main__':
         }
         status.append(log_status)
         df = pd.DataFrame(status)
-        df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_{start_time_str}_trigger{args.trigger_label}.csv", index=False, encoding='utf-8')
+        df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_{start_time_str}_trigger{args.trigger_label}.csv",
+                  index=False, encoding='utf-8')
 
     print(f'Fininsh Trainning in {time.time() - start_time}\n ')

@@ -13,9 +13,9 @@ class Client:
         self.device = args.device
         self.local_epochs = args.local_epochs
         self.local_model = model.get_model(args.model_name,
-                                            args.device,
-                                            input_channels=args.input_channels,
-                                            output_num=args.nb_classes)
+                                           args.device,
+                                           input_channels=args.input_channels,
+                                           output_num=args.nb_classes)
         self.client_id = client_id
         self.is_adversary = is_adversary
 
@@ -29,7 +29,7 @@ class Client:
                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
                                        )
 
-    def local_train(self, global_model, global_epoch):
+    def local_train(self, global_model, global_epoch, attack_now=False):
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
@@ -59,8 +59,10 @@ class Client:
         local_update = dict()
         for name, data in self.local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
-        if self.is_adversary and self.args.need_scale:
+        # 缩放客户端更新
+        if self.is_adversary and self.args.need_scale and attack_now:
             scale_upadate(self.args.weight_scale, local_update)
+        
         print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
         return local_update
 
