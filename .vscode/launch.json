@@ -45,8 +45,8 @@
                 // "--local_epochs", "3",
 
                 "--need_scale", "True",
-                // "--weight_scale", "10"
-                // "--adversary_num", "2"
+                "--weight_scale", "4"
+                // "--adversary_num", "2",
             ],
             "justMyCode": true
         },
