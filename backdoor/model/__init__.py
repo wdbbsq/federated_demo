@@ -8,12 +8,8 @@ from .resnet import build_resnet, ResNetWithOutput
 
 def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=10):
     if name == "resnet18":
-        # model = model.resnet18(pretrained=pretrained)
-        # fc_in_channles = model.fc.in_features
-        # model.fc = nn.Sequential(
-        #     nn.Linear(fc_in_channles, output_num),
-        #     nn.Softmax(dim=-1)
-        # )
+        # model = models.resnet18(pretrained=pretrained)
+
         model = build_resnet()
         # model = ResNetWithOutput(model.resnet18(pretrained=pretrained))
         # model.fc = nn.Sequential(

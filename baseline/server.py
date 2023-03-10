@@ -1,11 +1,10 @@
-import models
 import torch
-
+from utils import init_model
 
 class Server:
     def __init__(self, args, eval_dataset):
         self.args = args
-        self.global_model = models.init_model(self.args.model_name)
+        self.global_model = init_model(self.args.model_name)
         self.eval_loader = torch.utils.data.DataLoader(eval_dataset,
                                                        batch_size=self.args.batch_size,
                                                        shuffle=True)
@@ -51,7 +50,7 @@ class Server:
             pred = output.data.max(1)[1]
             correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
 
-        acc = 100.0 * (float(correct) / float(dataset_size))
+        acc = float(correct) / float(dataset_size)
         total_l = total_loss / dataset_size
 
         return acc, total_l

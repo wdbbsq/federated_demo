@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "test",
+            "name": "plot",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/playground/__init__.py",
+            "program": "${workspaceFolder}/utils/polt.py",
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true
@@ -19,7 +19,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/backdoor/__init__.py",
             "console": "integratedTerminal",
-            "args": [],
+            "args": [
+                "--need_scale", "True",
+            ],
             "justMyCode": true
         },
         {
@@ -30,8 +32,21 @@
             "console": "integratedTerminal",
             "args": [
                 "--dataset", "CIFAR10",
-                "--model_name", "resnet18"
-                // "--adversary_num", "0"
+                "--model_name", "resnet18",
+                
+                "--global_epochs", "40",
+                "--batch_size", "32",
+                "--lr", "0.001",
+                "--lambda_", "0.1",
+                "--momentum", "0.0001",
+
+                // "--total_workers", "10",
+                // "--k_workers", "5",
+                // "--local_epochs", "3",
+
+                "--need_scale", "True",
+                // "--weight_scale", "10"
+                // "--adversary_num", "2"
             ],
             "justMyCode": true
         },

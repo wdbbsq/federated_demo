@@ -3,40 +3,39 @@ from torch.utils.data import DataLoader
 
 from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
-import models
+import model
 
-_args = None
 
 class Server:
     def __init__(self, args, dataset_val_clean, dataset_val_poisoned):
         self.args = args
-        self.global_model = models.get_model(args.model_name,
-                                             args.device,
-                                             input_channels=args.input_channels,
-                                             output_num=args.nb_classes)
+        self.global_model = model.get_model(args.model_name,
+                                            args.device,
+                                            input_channels=args.input_channels,
+                                            output_num=args.nb_classes)
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
-                                           shuffle=False)
+                                           shuffle=True)
         self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
                                               batch_size=args.batch_size,
-                                              shuffle=False)
+                                              shuffle=True)
         
     def model_aggregate(self, weight_accumulator):
-        for name, sum_update in weight_accumulator.items():
-            scale = self.args.k_workers / self.args.total_num
-            average_update = scale * sum_update
-            model_weight = self.global_model.state_dict()[name]
-            if model_weight.type() == average_update.type():
-                model_weight.add_(average_update)
-            else:
-                model_weight.add_(average_update.to(torch.int64))
-
-        # for name, data in self.global_model.state_dict().items():
-        #     update_per_layer = weight_accumulator[name] * self.args.lambda_
-        #     if data.type() != update_per_layer.type():
-        #         data.add_(update_per_layer.to(torch.int64))
+        # for name, sum_update in weight_accumulator.items():
+        #     scale = self.args.k_workers / self.args.total_workers
+        #     average_update = scale * sum_update
+        #     model_weight = self.global_model.state_dict()[name]
+        #     if model_weight.type() == average_update.type():
+        #         model_weight.add_(average_update)
         #     else:
-        #         data.add_(update_per_layer)
+        #         model_weight.add_(average_update.to(torch.int64))
+
+        for name, data in self.global_model.state_dict().items():
+            update_per_layer = weight_accumulator[name] * self.args.lambda_
+            if data.type() != update_per_layer.type():
+                data.add_(update_per_layer.to(torch.int64))
+            else:
+                data.add_(update_per_layer)
 
     def eval(self, data_loader, model, device, print_perform=False):
         criterion = torch.nn.CrossEntropyLoss()
@@ -75,13 +74,13 @@ class Server:
         }
 
     def evaluate_badnets(self):
-        ta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
-        asr = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
-        # ta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
-        # asr = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
+        mta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
+        bta = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
+        # mta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
+        # bta = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
         return {
-            'clean_acc': ta['acc'], 'clean_loss': ta['loss'],
-            'asr': asr['acc'], 'asr_loss': asr['loss'],
+            'clean_acc': mta['acc'], 'clean_loss': mta['loss'],
+            'bta': bta['acc'], 'asr_loss': bta['loss'],
         }
 
 def model_eval(global_model, data_loader, device):
