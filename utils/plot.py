@@ -1,7 +1,6 @@
 import csv
 from pylab import *
 import csv
-
 from pylab import *
 
 mpl.rcParams['font.sans-serif'] = ['Fira Code', 'sans-serif']
@@ -174,13 +173,14 @@ def plot(filename, csv_dir, csv_title, xlabel, ylabel, legend_name, save_pic=Fal
     ydata = []
     with open(csv_file, 'r', newline='') as dataSource:
         rows = csv.reader(dataSource)
+        next(rows)
         for row in rows:
-            ydata.append(float(row[0]))
+            ydata.append(float(row[1]))
     xdata = range(1, len(ydata) + 1)
     plt.title(csv_title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.plot(xdata, ydata, label=legend_name, color='r', linestyle='-')
+    plt.plot(xdata, ydata, label=legend_name, linewidth=1, color='k', linestyle='-')
 
     plt.legend()
     if save_pic:
@@ -190,7 +190,12 @@ def plot(filename, csv_dir, csv_title, xlabel, ylabel, legend_name, save_pic=Fal
 
 if __name__ == "__main__":
     # getresult()
-    PicCNN("label_flip", "label_flip")
+    # PicCNN("label_flip", "label_flip")
     # PicCNN("flex", "FLEX")
-    # plot('111', '../poison/posion_DataPoisoning_FL/', '', 'Turns', 'Accuracy', 'label_flip')
+    plot(filename='2023-03-06-09-43-08_CIFAR10_trigger1',
+         csv_dir='../backdoor/logs/',
+         csv_title='',
+         xlabel='Turns',
+         ylabel='Accuracy',
+         legend_name='MTA')
     exit()
