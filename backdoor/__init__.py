@@ -61,7 +61,7 @@ if __name__ == '__main__':
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
-    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_white.png",
+    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_10.png",
                         help='Trigger Path (default: ./backdoor/triggers/trigger_white.png)')
     parser.add_argument('--trigger_size', type=int, default=5,
                         help='Trigger Size (int, default: 5)')

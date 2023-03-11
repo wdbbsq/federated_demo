@@ -8,7 +8,7 @@
             "name": "plot",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/utils/polt.py",
+            "program": "${workspaceFolder}/utils/plot.py",
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true
@@ -45,8 +45,8 @@
                 // "--local_epochs", "3",
 
                 "--need_scale", "True",
-                "--weight_scale", "4"
-                // "--adversary_num", "2",
+                "--weight_scale", "4",
+                // "--adversary_num", "0",
             ],
             "justMyCode": true
         },
