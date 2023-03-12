@@ -5,6 +5,9 @@ from typing import List
 
 import pandas as pd
 import torch
+import torch.nn.functional as F
+from sklearn.metrics.pairwise import cosine_similarity
+from itertools import combinations
 
 from client import Client
 from server import Server
@@ -117,12 +120,18 @@ if __name__ == '__main__':
         for name, params in server.global_model.state_dict().items():
             weight_accumulator[name] = torch.zeros_like(params)
 
+        local_updates = []
         for c in candidates:
             local_update = c.local_train(server.global_model, epoch, attack_now)
+            local_updates.append(local_update)
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 
+        # 计算余弦相似度
+        for i, j in list(combinations(local_updates, 2)):
+            cos = F.cosine_similarity(i, j)
+            print(cos)
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()
         log_status = {
