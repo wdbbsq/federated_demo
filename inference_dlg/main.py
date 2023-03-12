@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 import argparse
+import numpy as np
+from pprint import pprint
 
 from PIL import Image
 import matplotlib.pyplot as plt
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import grad
 import torchvision
-from torchvision import datasets, transforms
-from inference_dlg.models import LeNet, weights_init
-from inference_dlg.utils import label_to_onehot, cross_entropy_for_onehot
+from torchvision import models, datasets, transforms
 
 print(torch.__version__, torchvision.__version__)
+
+from utils import label_to_onehot, cross_entropy_for_onehot
 
 parser = argparse.ArgumentParser(description='Deep Leakage from Gradients.')
 parser.add_argument('--index', type=int, default="25",
@@ -25,8 +29,7 @@ if torch.cuda.is_available():
     device = "cuda"
 print("Running on %s" % device)
 
-# dst = datasets.CIFAR100("~/.torch", download=True)
-dst = datasets.MNIST("~/.torch", download=True)
+dst = datasets.CIFAR100("~/.torch", download=True)
 tp = transforms.ToTensor()
 tt = transforms.ToPILImage()
 
@@ -44,6 +47,8 @@ gt_onehot_label = label_to_onehot(gt_label)
 
 plt.imshow(tt(gt_data[0].cpu()))
 
+from models.vision import LeNet, weights_init
+
 net = LeNet().to(device)
 
 torch.manual_seed(1234)
@@ -51,7 +56,7 @@ torch.manual_seed(1234)
 net.apply(weights_init)
 criterion = cross_entropy_for_onehot
 
-# compute original gradient 
+# compute original gradient
 pred = net(gt_data)
 y = criterion(pred, gt_onehot_label)
 dy_dx = torch.autograd.grad(y, net.parameters())
