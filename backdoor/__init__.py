@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics.pairwise import cosine_similarity
 from itertools import combinations
+from defense import pca_of_gradients
 
 from client import Client
 from server import Server
@@ -16,6 +17,7 @@ import server
 
 
 TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
+LAYER_NAME = '7.weight'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Backdoor')
@@ -129,9 +131,12 @@ if __name__ == '__main__':
                 weight_accumulator[name].add_(local_update[name])
 
         # 计算余弦相似度
+        cos_list = []
         for i, j in list(combinations(local_updates, 2)):
-            cos = F.cosine_similarity(i, j)
-            print(cos)
+            cos = cosine_similarity(i[LAYER_NAME].reshape(1, -1).cpu().numpy(),
+                                    j[LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
+            cos_list.append(cos)
+
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()
         log_status = {
