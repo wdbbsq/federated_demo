@@ -46,14 +46,8 @@ class Server:
         for (batch_x, batch_y) in tqdm(data_loader):
             batch_x = batch_x.to(device, non_blocking=True)
             batch_y = batch_y.to(device, non_blocking=True)
-
-            if self.args.dataset == 'CIFAR10':
-                # batch_y_predict, out_1000 = model(batch_x)
-                batch_y_predict = model(batch_x)
-            elif self.args.dataset == 'MNIST':
-                batch_y_predict = model(batch_x)
-            else:        
-                raise NotImplementedError(f'Unkown dataset {self.args.dataset}')
+            
+            batch_y_predict = model(batch_x)
             
             loss = criterion(batch_y_predict, batch_y)
             batch_y_predict = torch.argmax(batch_y_predict, dim=1)
