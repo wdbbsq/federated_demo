@@ -23,7 +23,6 @@ class Client:
         all_range = list(range(len(train_dataset)))
         data_len = int(len(train_dataset) / args.total_workers)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
-        # todo 每个客户端自己的验证集
         self.train_loader = DataLoader(train_dataset,
                                        batch_size=args.batch_size,
                                        num_workers=args.num_workers,
@@ -53,11 +52,12 @@ class Client:
         
         # 缩放客户端更新
         if self.is_adversary and self.args.need_scale and attack_now:
-            scale_upadate(self.args.weight_scale, local_update)
-        
+            scale_update(self.args.weight_scale, local_update)
+
         print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
         return local_update
 
-def scale_upadate(weight_scale: int, local_update: Dict[str, torch.Tensor]):
+
+def scale_update(weight_scale: int, local_update: Dict[str, torch.Tensor]):
     for name, value in local_update.items():
         value.mul_(weight_scale)

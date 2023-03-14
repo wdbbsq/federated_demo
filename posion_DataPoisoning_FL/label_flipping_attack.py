@@ -13,7 +13,7 @@ if __name__ == '__main__':
     NUM_POISONED_WORKERS = 0
     REPLACEMENT_METHOD = replace_1_with_9
     KWARGS = {
-        "NUM_WORKERS_PER_ROUND" : 5
+        "NUM_WORKERS_PER_ROUND": 5
     }
 
     for experiment_id in range(START_EXP_IDX, START_EXP_IDX + NUM_EXP):
