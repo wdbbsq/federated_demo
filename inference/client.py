@@ -1,14 +1,14 @@
 
 from tqdm import tqdm
 
-import models
+from utils import init_model
 import torch
 
 
 class Client:
     def __init__(self, conf, model, train_dataset, client_id=-1, is_adversary=False):
         self.conf = conf
-        self.local_model = models.get_model(self.conf["model_name"])
+        self.local_model = init_model(self.conf["model_name"])
         self.client_id = client_id
         self.train_dataset = train_dataset
         self.is_adversary = is_adversary
