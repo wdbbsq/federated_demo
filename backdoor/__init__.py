@@ -75,7 +75,7 @@ if __name__ == '__main__':
                         help='恶意更新缩放比例')
     epochs = list(range(40))
     parser.add_argument('--attack_epochs', type=list, default=epochs[29:],
-                        help='发起攻击的轮次，默认从15轮训练开始攻击')
+                        help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', default='None', help='[None, Flex]')
     # other setting

@@ -3,6 +3,7 @@ from typing import Dict
 import model
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 
@@ -41,24 +42,14 @@ class Client:
                 batch_x = batch_x.to(self.device, non_blocking=True)
                 batch_y = batch_y.to(self.device, non_blocking=True)
                 optimizer.zero_grad()
-
-                if self.args.dataset == 'CIFAR10':
-                    # output, out_1000 = self.local_model(batch_x)
-                    output = self.local_model(batch_x)
-                elif self.args.dataset == 'MNIST':
-                    output = self.local_model(batch_x)
-                else:
-                    raise NotImplementedError(f'Unkown dataset {self.args.dataset}')
-
+                output = self.local_model(batch_x)
                 loss = torch.nn.functional.cross_entropy(output, batch_y)
-                # 计算梯度
                 loss.backward()
-                # 自更新
                 optimizer.step()
         local_update = dict()
         for name, data in self.local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
-
+        
         # 缩放客户端更新
         if self.is_adversary and self.args.need_scale and attack_now:
             scale_update(self.args.weight_scale, local_update)
