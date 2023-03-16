@@ -1,51 +1,54 @@
-
 from tqdm import tqdm
-
 from utils import init_model
+
 import torch
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+
+from phe import paillier
 
 
 class Client:
-    def __init__(self, conf, model, train_dataset, client_id=-1, is_adversary=False):
-        self.conf = conf
-        self.local_model = init_model(self.conf["model_name"])
+    def __init__(self, args, train_dataset, client_id=-1):
+        self.args = args
+        self.local_epochs = args.local_epochs
+        self.local_model = init_model(args.model_name)
         self.client_id = client_id
-        self.train_dataset = train_dataset
-        self.is_adversary = is_adversary
+        self.device = args.device
+        self.public_key, self.private_key = paillier.generate_paillier_keypair()
 
-        all_range = list(range(len(self.train_dataset)))
-        data_len = int(len(self.train_dataset) / self.conf["total"])
+        all_range = list(range(len(train_dataset)))
+        data_len = int(len(train_dataset) / args.total_workers)
         train_indices = all_range[client_id * data_len: (client_id + 1) * data_len]
+        self.train_loader = DataLoader(train_dataset,
+                                       batch_size=args.batch_size,
+                                       num_workers=args.num_workers,
+                                       sampler=SubsetRandomSampler(train_indices))
 
-        self.train_loader = torch.utils.data.DataLoader(self.train_dataset,
-                                                        batch_size=conf["batch_size"],
-                                                        sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
-                                                        )
-
-    def local_train(self, global_model):
-        for name, param in global_model.state_dict().items():
+    def local_train(self, global_model, global_epoch):
+        for name, enc_param in global_model.state_dict().items():
+            # 获取全局模型明文
+            param = self.private_key.decrypt(enc_param)
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
-                                    lr=self.conf['lr'],
-                                    momentum=self.conf['momentum'])
+                                    lr=self.args.lr,
+                                    momentum=self.args.momentum)
         self.local_model.train()
 
-        for e in range(self.conf["local_epochs"]):
-            for batch_id, batch in tqdm(enumerate(self.train_loader)):
-                data, target = batch
-                if torch.cuda.is_available():
-                    data = data.cuda()
-                    target = target.cuda()
+        for epoch in range(self.local_epochs):
+            for batch_id, (batch_x, batch_y) in enumerate(tqdm(self.train_loader)):
+                batch_x = batch_x.to(self.device, non_blocking=True)
+                batch_y = batch_y.to(self.device, non_blocking=True)
                 optimizer.zero_grad()
-                output = self.local_model(data)
-                loss = torch.nn.functional.cross_entropy(output, target)
-                # 计算梯度
+                output = self.local_model(batch_x)
+                loss = torch.nn.functional.cross_entropy(output, batch_y)
                 loss.backward()
-                # 自更新
                 optimizer.step()
-            # print("Client %d : epoch %d done." % (self.client_id, e))
-        diff = dict()
+        local_update = dict()
         for name, data in self.local_model.state_dict().items():
-            diff[name] = (data - global_model.state_dict()[name])
-        print("Client %d done." % self.client_id)
-        return diff
+            local_update[name] = (data - global_model.state_dict()[name])
+
+        print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss.item()}\n')
+        return local_update
+
+

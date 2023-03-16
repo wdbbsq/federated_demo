@@ -14,7 +14,7 @@ TIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federated Learning')
     # base settings
-    parser.add_argument('--dataset', default='CIFAR10',
+    parser.add_argument('--dataset', default='MNIST',
                         help='Which dataset to use (MNIST or CIFAR10, default: MNIST)')
     parser.add_argument('--nb_classes', default=10, type=int,
                         help='number of the classification types')
@@ -31,30 +31,30 @@ if __name__ == '__main__':
                         help='Number of epochs to train backdoor model, default: 100')
     parser.add_argument('--num_workers', type=int, default=2,
                         help='')
-    parser.add_argument('--data_path', default='./data/',
-                        help='Place to load dataset (default: ./dataset/)')
+    parser.add_argument('--data_path', default='~/.torch',
+                        help='Place to load dataset (default: ~/.torch)')
 
-    parser.add_argument('--batch_size', type=int, default=32,
-                        help='Batch size to split dataset, default: 32')
+    parser.add_argument('--batch_size', type=int, default=64,
+                        help='Batch size to split dataset, default: 64')
     parser.add_argument('--test_batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
-    parser.add_argument('--lr', type=float, default=0.001,
+    parser.add_argument('--lr', type=float, default=0.01,
                         help='Learning rate of the model, default: 0.001')
-    parser.add_argument('--lambda_', type=float, default=0.1,
+    parser.add_argument('--lambda_', type=float, default=0.01,
                         help='')
     parser.add_argument('--momentum', type=float, default=0.0001,
                         help='')
 
     # federated settings
-    parser.add_argument('--total_workers', type=int, default=10)
-    parser.add_argument('--k_workers', type=int, default=5,
+    parser.add_argument('--total_workers', type=int, default=4)
+    parser.add_argument('--k_workers', type=int, default=3,
                         help='clients num selected for each epoch')
-    parser.add_argument('--local_epochs', type=int, default=3)
+    parser.add_argument('--local_epochs', type=int, default=2)
 
     args = parser.parse_args()
 
-    train_datasets, eval_datasets = get_dataset("./data/", args.dataset)
-    server = Server(args, eval_datasets)
+    train_datasets, eval_datasets = get_dataset(args.data_path, args.dataset)
+    server = Server(args)
     clients = []
     for client_id in range(args.total_workers):
         clients.append(Client(args, train_datasets, client_id))
@@ -79,10 +79,10 @@ if __name__ == '__main__':
         status.append({
             'epoch': e,
             'test_acc': acc,
-            'test_loss': loss
+            'test_loss': loss.item()
         })
         df = pd.DataFrame(status)
         df.to_csv(f"./inference/logs/{args.dataset}_{args.model_name}_{start_time_str}.csv",
                   index=False, encoding='utf-8')
 
-        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
+        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss.item()))

@@ -21,8 +21,7 @@ class Client:
         self.train_loader = DataLoader(train_dataset,
                                        batch_size=args.batch_size,
                                        num_workers=args.num_workers,
-                                       sampler=SubsetRandomSampler(train_indices)
-                                       )
+                                       sampler=SubsetRandomSampler(train_indices))
 
     def local_train(self, global_model, global_epoch):
         for name, param in global_model.state_dict().items():
