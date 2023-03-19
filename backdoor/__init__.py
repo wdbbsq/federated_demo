@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics.pairwise import cosine_similarity
 from itertools import combinations
-from defense import pca_of_gradients
+# from defense import pca_of_gradients
 
 from client import Client
 from server import Server
@@ -125,7 +125,10 @@ if __name__ == '__main__':
         local_updates = []
         for c in candidates:
             local_update = c.local_train(server.global_model, epoch, attack_now)
-            local_updates.append(local_update)
+            local_updates.append({
+                'id': c.client_id,
+                'local_update': local_update
+            })
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
@@ -133,17 +136,19 @@ if __name__ == '__main__':
         # 计算余弦相似度
         cos_list = []
         for i, j in list(combinations(local_updates, 2)):
-            cos = cosine_similarity(i[LAYER_NAME].reshape(1, -1).cpu().numpy(),
-                                    j[LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
+            cos = cosine_similarity(i['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy(),
+                                    j['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
             cos_list.append(cos)
+        # df = pd.DataFrame(cos_states)
+        # df.to_csv(f'./backdoor/logs/cos/epoch{epoch}_{start_time_str}',
+        #           index=False, encoding='utf-8')
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets()
-        log_status = {
+        status.append({
             'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}
-        }
-        status.append(log_status)
+        })
         df = pd.DataFrame(status)
         df.to_csv(f"./backdoor/logs/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_{start_time_str}_trigger{args.trigger_label}.csv",
                   index=False, encoding='utf-8')

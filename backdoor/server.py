@@ -64,7 +64,7 @@ class Server:
 
         return {
             "acc": accuracy_score(y_true.cpu(), y_predict.cpu()),
-            "loss": loss,
+            "loss": loss.item(),
         }
 
     def evaluate_badnets(self):

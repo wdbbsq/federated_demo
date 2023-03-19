@@ -54,7 +54,7 @@ class Client:
         if self.is_adversary and self.args.need_scale and attack_now:
             scale_update(self.args.weight_scale, local_update)
 
-        print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss}\n')
+        print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss.item()}\n')
         return local_update
 
 
