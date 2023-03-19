@@ -31,8 +31,8 @@ if __name__ == '__main__':
                         help='Number of epochs to train backdoor model, default: 100')
     parser.add_argument('--num_workers', type=int, default=2,
                         help='')
-    parser.add_argument('--data_path', default='./data/',
-                        help='Place to load dataset (default: ./dataset/)')
+    parser.add_argument('--data_path', default='~/.torch',
+                        help='Place to load dataset (default: ~/.torch)')
 
     parser.add_argument('--batch_size', type=int, default=32,
                         help='Batch size to split dataset, default: 32')
@@ -52,8 +52,9 @@ if __name__ == '__main__':
     parser.add_argument('--local_epochs', type=int, default=3)
 
     args = parser.parse_args()
+    args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    train_datasets, eval_datasets = get_dataset("./data/", args.dataset)
+    train_datasets, eval_datasets = get_dataset(args.data_path, args.dataset)
     server = Server(args, eval_datasets)
     clients = []
     for client_id in range(args.total_workers):
@@ -79,11 +80,11 @@ if __name__ == '__main__':
         log_status = {
             'epoch': e,
             'test_acc': acc,
-            'test_loss': loss
+            'test_loss': loss.item()
         }
         status.append(log_status)
         df = pd.DataFrame(status)
         df.to_csv(f"./baseline/logs/{args.dataset}_{args.model_name}_{start_time_str}.csv",
                   index=False, encoding='utf-8')
 
-        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
+        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss.item()))

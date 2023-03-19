@@ -1,19 +1,21 @@
+from tqdm import tqdm
+from utils import init_model
+
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from tqdm import tqdm
 
-from utils import init_model
+from phe import paillier
 
 
 class Client:
-
     def __init__(self, args, train_dataset, client_id=-1):
         self.args = args
         self.local_epochs = args.local_epochs
         self.local_model = init_model(args.model_name)
         self.client_id = client_id
         self.device = args.device
+        self.public_key, self.private_key = paillier.generate_paillier_keypair()
 
         all_range = list(range(len(train_dataset)))
         data_len = int(len(train_dataset) / args.total_workers)
@@ -24,7 +26,9 @@ class Client:
                                        sampler=SubsetRandomSampler(train_indices))
 
     def local_train(self, global_model, global_epoch):
-        for name, param in global_model.state_dict().items():
+        for name, enc_param in global_model.state_dict().items():
+            # 获取全局模型明文
+            param = self.private_key.decrypt(enc_param)
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
                                     lr=self.args.lr,
@@ -46,3 +50,5 @@ class Client:
 
         print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss.item()}\n')
         return local_update
+
+

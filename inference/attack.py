@@ -1,63 +1,58 @@
 import random
 
 import torch
+import torch.functional as F
+
+from torchvision import transforms
 
 
-def poison_train_dataset(conf, train_dataset):
+def label_to_onehot(target, num_classes=100):
+    target = torch.unsqueeze(target, 1)
+    onehot_target = torch.zeros(target.size(0), num_classes, device=target.device)
+    onehot_target.scatter_(1, target, 1)
+    return onehot_target
+
+
+def cross_entropy_for_onehot(pred, target):
+    return torch.mean(torch.sum(- target * F.log_softmax(pred, dim=-1), 1))
+
+
+def dlg(net, target_data, target_label, device):
     """
-    生成中毒数据集
-    :param train_dataset:
-    :param conf:
+    推理攻击
+    :param net:
+    :param target_data:
+    :param target_label:
+    :param device:
     :return:
     """
-    #
-    # return [(self.train_dataset[self.params['poison_image_id']][0],
-    # torch.IntTensor(self.params['poison_label_swap']))]
-    cifar_classes = {}
-    for ind, x in enumerate(train_dataset):
-        _, label = x
-        if ind in conf.params['poison_images'] or ind in conf.params['poison_images_test']:
-            continue
-        if label in cifar_classes:
-            cifar_classes[label].append(ind)
-        else:
-            cifar_classes[label] = [ind]
-    indices = list()
-    # create array that starts with poisoned images
 
-    # create candidates:
-    # range_no_id = cifar_classes[1]
-    # range_no_id.extend(cifar_classes[1])
+    criterion = cross_entropy_for_onehot
 
-    # 剔除数据集中的后门样本
-    range_no_id = list(range(50000))
-    for image in conf.params['poison_images'] + conf.params['poison_images_test']:
-        if image in range_no_id:
-            range_no_id.remove(image)
+    dummy_data = torch.randn(target_data.size()).to(device).requires_grad_(True)
+    dummy_label = torch.randn(target_label.size()).to(device).requires_grad_(True)
+    optimizer = torch.optim.LBFGS([dummy_data, dummy_label])
+    original_dy_dx = list((_.detach().clone() for _ in target_data))
 
-    # add random images to other parts of the batch
-    for batches in range(0, conf.params['size_of_secret_dataset']):
-        range_iter = random.sample(range_no_id, conf.params['batch_size'])
-        # range_iter[0] = self.params['poison_images'][0]
-        indices.extend(range_iter)
-        # range_iter = random.sample(range_no_id,
-        #            self.params['batch_size']
-        #                -len(self.params['poison_images'])*self.params['poisoning_per_batch'])
-        # for i in range(0, self.params['poisoning_per_batch']):
-        #     indices.extend(self.params['poison_images'])
-        # indices.extend(range_iter)
-    return torch.utils.data.DataLoader(train_dataset,
-                                       batch_size=conf.params['batch_size'],
-                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(indices)
-                                       )
+    history = []
+    for iters in range(300):
+        def closure():
+            optimizer.zero_grad()
 
+            dummy_pred = net(dummy_data)
+            dummy_onehot_label = F.softmax(dummy_label, dim=-1)
+            dummy_loss = criterion(dummy_pred, dummy_onehot_label)
+            dummy_dy_dx = torch.autograd.grad(dummy_loss, net.parameters(), create_graph=True)
 
-def poison_test_dataset(conf, train_dataset):
-    #
-    # return [(self.train_dataset[self.params['poison_image_id']][0],
-    # torch.IntTensor(self.params['poison_label_swap']))]
-    return torch.utils.data.DataLoader(train_dataset,
-                                       batch_size=conf.params['batch_size'],
-                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(
-                                           range(1000))
-                                       )
+            grad_diff = 0
+            for gx, gy in zip(dummy_dy_dx, original_dy_dx):
+                grad_diff += ((gx - gy) ** 2).sum()
+            grad_diff.backward()
+
+            return grad_diff
+
+        optimizer.step(closure)
+        if iters % 10 == 0:
+            current_loss = closure()
+            print(iters, "%.4f" % current_loss.item())
+            history.append(tt(dummy_data[0].cpu()))
