@@ -25,10 +25,15 @@ class Client:
                                        num_workers=args.num_workers,
                                        sampler=SubsetRandomSampler(train_indices))
 
-    def local_train(self, global_model, global_epoch):
-        for name, enc_param in global_model.state_dict().items():
+    def decrypt_model(self):
+        if self.args.use_paillier:
+            print('got ya')
             # 获取全局模型明文
-            param = self.private_key.decrypt(enc_param)
+            # param = self.private_key.decrypt(enc_param)
+
+    def local_train(self, global_model, global_epoch):
+        self.decrypt_model()
+        for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
         optimizer = torch.optim.SGD(self.local_model.parameters(),
                                     lr=self.args.lr,

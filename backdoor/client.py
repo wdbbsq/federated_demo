@@ -9,12 +9,12 @@ from torch.utils.data import DataLoader
 
 class Client:
 
-    def __init__(self, args, train_dataset, client_id=-1, is_adversary=False):
+    def __init__(self, args, train_dataset, device, client_id=-1, is_adversary=False):
         self.args = args
-        self.device = args.device
+        self.device = device
         self.local_epochs = args.local_epochs
         self.local_model = model.get_model(args.model_name,
-                                           args.device,
+                                           device,
                                            input_channels=args.input_channels,
                                            output_num=args.nb_classes)
         self.client_id = client_id

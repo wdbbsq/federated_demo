@@ -7,10 +7,10 @@ import model
 
 
 class Server:
-    def __init__(self, args, dataset_val_clean, dataset_val_poisoned):
+    def __init__(self, args, dataset_val_clean, dataset_val_poisoned, device):
         self.args = args
         self.global_model = model.get_model(args.model_name,
-                                            args.device,
+                                            device,
                                             input_channels=args.input_channels,
                                             output_num=args.nb_classes)
         self.loader_val_clean = DataLoader(dataset_val_clean,
@@ -64,12 +64,12 @@ class Server:
 
         return {
             "acc": accuracy_score(y_true.cpu(), y_predict.cpu()),
-            "loss": loss.item(),
+            "loss": loss,
         }
 
-    def evaluate_badnets(self):
-        mta = self.eval(self.loader_val_clean, self.global_model, self.args.device, print_perform=True)
-        bta = self.eval(self.loader_val_poisoned, self.global_model, self.args.device, print_perform=False)
+    def evaluate_badnets(self, device):
+        mta = self.eval(self.loader_val_clean, self.global_model, device, print_perform=True)
+        bta = self.eval(self.loader_val_poisoned, self.global_model, device, print_perform=False)
         # mta = model_eval(self.global_model, self.loader_val_clean, self.args.device)
         # bta = model_eval(self.global_model, self.loader_val_poisoned, self.args.device)
         return {

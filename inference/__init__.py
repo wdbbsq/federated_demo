@@ -51,10 +51,12 @@ if __name__ == '__main__':
                         help='clients num selected for each epoch')
     parser.add_argument('--local_epochs', type=int, default=2)
 
+    parser.add_argument('--use_paillier', type=bool, default=True)
+
     args = parser.parse_args()
 
     train_datasets, eval_datasets = get_dataset(args.data_path, args.dataset)
-    server = Server(args)
+    server = Server(args, eval_datasets)
     clients = []
     for client_id in range(args.total_workers):
         clients.append(Client(args, train_datasets, client_id))
@@ -79,10 +81,10 @@ if __name__ == '__main__':
         status.append({
             'epoch': e,
             'test_acc': acc,
-            'test_loss': loss.item()
+            'test_loss': loss
         })
         df = pd.DataFrame(status)
         df.to_csv(f"./inference/logs/{args.dataset}_{args.model_name}_{start_time_str}.csv",
                   index=False, encoding='utf-8')
 
-        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss.item()))
+        print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))

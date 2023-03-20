@@ -52,3 +52,15 @@ def init_model(name="vgg16", pretrained=True):
         return model.cuda()
     else:
         return model
+
+
+def get_clients_indices(candidates):
+    """
+
+    :param candidates:
+    :return: Dict[客户端id 下标]
+    """
+    indices = dict()
+    for i, candidate in enumerate(candidates):
+        indices[candidate.client_id] = i
+    return indices
