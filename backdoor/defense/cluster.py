@@ -1,7 +1,13 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from matplotlib import pyplot as plot
-import hdbscan
+from sklearn.datasets import make_blobs
+import pandas as pd
+from hdbscan import HDBSCAN
+from backdoor.defense import pca_of_gradients
+from sklearn.preprocessing import StandardScaler
+
+from utils.serialization import read_from_file
 
 
 def kmeans():
@@ -18,24 +24,70 @@ def kmeans():
     print(labels)
 
     for i in range(len(labels)):
-        plot.scatter(x[i][0], x[i][1], c=('r' if labels[i] == 0 else 'b'))
-    plot.scatter(centers[:, 0], centers[:, 1], marker='*', s=100)
+        plt.scatter(x[i][0], x[i][1], c=('r' if labels[i] == 0 else 'b'))
+    plt.scatter(centers[:, 0], centers[:, 1], marker='*', s=100)
 
     # 预测
     predict = [[2, 1], [6, 9]]
     label = clf.predict(predict)
     for i in range(len(label)):
-        plot.scatter(predict[i][0], predict[i][1], c=('r' if label[i] == 0 else 'b'), marker='x')
-
-    plot.show()
-
-
-def hdbscan():
-    print('dd')
-
-    cluster = hdbscan.HDBSCAN()
-    cluster.fit(blobs)
+        plt.scatter(predict[i][0], predict[i][1], c=('r' if label[i] == 0 else 'b'), marker='x')
+    plt.show()
 
 
 def plot_cluster():
     kmeans()
+
+
+def plot_in_2d(labels, x):
+    # Black removed and is used for noise instead.
+    unique_labels = set(labels)
+    colors = ['r', 'g', 'b', 'c', 'y', 'm', 'k']
+    # colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = 'k'
+        plt.plot(x[labels == k, 0], x[labels == k, 1], 'o', markerfacecolor=col,
+                 markeredgecolor='k', markersize=6)
+    plt.title('HDBSCAN')
+    plt.show()
+
+
+def plot_in_3d(labels, x):
+    labels[3] = 0
+    labels[5] = 1
+    # Black removed and is used for noise instead.
+    colors = ['k', 'r', 'g', 'b', 'c', 'y', 'm']
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    length, _ = x.shape
+    c = []
+    for i in range(length):
+        c.append(colors[labels[i] + 1])
+    ax.scatter(x[0:, 0], x[0:, 1], x[0:, 2], c=c)
+
+    plt.title('HDBSCAN')
+    plt.show()
+
+
+obj = read_from_file('./backdoor/logs/2023-03-20-14-58-06/29_cos_numpy')
+cos_list = obj['cos_list']
+x = pca_of_gradients(cos_list, 3)
+
+hdb = HDBSCAN(min_cluster_size=3, min_samples=1).fit(x)
+labels = hdb.labels_
+outliers = hdb.outlier_scores_
+
+plot_in_3d(labels, x)
+
+# obj = read_from_file('./backdoor/logs/2023-03-20-14-58-06/26_cos_numpy')
+# cos_list = obj['cos_list']
+# x = pca_of_gradients(cos_list, 2)
+#
+# hdb = HDBSCAN(min_cluster_size=3, min_samples=1).fit(x)
+# labels = hdb.labels_
+# outliers = hdb.outlier_scores_
+#
+# plot_in_2d(labels, x)
+
