@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
-import model
+from backdoor import model
 
 
 class Server:

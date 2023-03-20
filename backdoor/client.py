@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from typing import Dict
-import model
+from backdoor import model
 
 import torch
 import torch.nn.functional as F

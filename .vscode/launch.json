@@ -28,20 +28,21 @@
             "name": "Backdoor cifar",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/backdoor/__init__.py",
+            "program": "${workspaceFolder}/run_backdoor.py",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "args": [
                 "--dataset", "CIFAR10",
                 "--model_name", "resnet18",
                 
-                "--global_epochs", "40",
+                "--global_epochs", "30",
                 "--batch_size", "32",
                 "--lr", "0.001",
                 "--lambda_", "0.1",
                 "--momentum", "0.0001",
 
                 "--total_workers", "20",
-                "--k_workers", "20",
+                "--k_workers", "10",
                 // "--local_epochs", "3",
 
                 "--need_scale", "True",
@@ -55,6 +56,15 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/baseline/main.py",
+            "console": "integratedTerminal",
+            "args": [],
+            "justMyCode": true
+        },
+        {
+            "name": "Playground",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/playground/__init__.py",
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true

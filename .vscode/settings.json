@@ -1,3 +1,7 @@
 {
-    "python.analysis.typeCheckingMode": "off"
+    "python.analysis.typeCheckingMode": "off",
+    "python.linting.enabled": true,
+    "python.autoComplete.extraPaths": [
+        "/root/zsq/federated_demo/utils",
+    ]
 }
