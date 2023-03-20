@@ -3,5 +3,8 @@
     "python.linting.enabled": true,
     "python.autoComplete.extraPaths": [
         "/root/zsq/federated_demo/utils",
+    ],
+    "python.analysis.extraPaths": [
+        "/root/zsq/federated_demo/utils"
     ]
 }

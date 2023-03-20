@@ -49,12 +49,9 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', default='./data/',
                         help='Place to load dataset (default: ./dataset/)')
 
-    parser.add_argument('--lr', type=float, default=0.01,
-                        help='Learning rate of the model, default: 0.001')
-    parser.add_argument('--lambda_', type=float, default=0.01,
-                        help='')
-    parser.add_argument('--momentum', type=float, default=0.0001,
-                        help='')
+    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--lambda_', type=float, default=0.01, help='')
+    parser.add_argument('--momentum', type=float, default=0.0001,  help='')
 
     # federated settings
     parser.add_argument('--total_workers', type=int, default=4)
@@ -158,8 +155,10 @@ if __name__ == '__main__':
         for i in range(args.k_workers):
             cos_list[i][i] = 1
 
-        save_as_file(cos_list, f'{LOG_PREFIX}/{epoch}_cos_numpy')
-        # plot_cluster()
+        save_as_file({
+            'cos_list': cos_list,
+            'client_ids_map': client_ids_map
+        }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
