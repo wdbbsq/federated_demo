@@ -144,21 +144,22 @@ if __name__ == '__main__':
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 
-        # 计算余弦相似度
-        cos_list = np.zeros([args.k_workers, args.k_workers])
-        for i, j in list(combinations(local_updates, 2)):
-            cos = cosine_similarity(i['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy(),
-                                    j['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
-            x, y = client_ids_map.get(i['id']), client_ids_map.get(j['id'])
-            cos_list[x][y] = cos
-            cos_list[y][x] = cos
-        for i in range(args.k_workers):
-            cos_list[i][i] = 1
+        if attack_now:
+            # 计算余弦相似度
+            cos_list = np.zeros([args.k_workers, args.k_workers])
+            for i, j in list(combinations(local_updates, 2)):
+                cos = cosine_similarity(i['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy(),
+                                        j['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
+                x, y = client_ids_map.get(i['id']), client_ids_map.get(j['id'])
+                cos_list[x][y] = cos
+                cos_list[y][x] = cos
+            for i in range(args.k_workers):
+                cos_list[i][i] = 1
 
-        save_as_file({
-            'cos_list': cos_list,
-            'client_ids_map': client_ids_map
-        }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
+            save_as_file({
+                'cos_list': cos_list,
+                'client_ids_map': client_ids_map
+            }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
