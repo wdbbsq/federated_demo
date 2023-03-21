@@ -144,7 +144,7 @@ if __name__ == '__main__':
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 
-        if attack_now:
+        if attack_now and c.client_id in adversary_list:
             # 计算余弦相似度
             cos_list = np.zeros([args.k_workers, args.k_workers])
             for i, j in list(combinations(local_updates, 2)):

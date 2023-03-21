@@ -9,14 +9,13 @@ from .resnet import build_resnet, ResNetWithOutput
 
 def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=10):
     if name == "resnet18":
-        # model = models.resnet18(pretrained=pretrained)
-        model = build_resnet()
-        
-        # model = ResNetWithOutput(model.resnet18(pretrained=pretrained))
-        # model.fc = nn.Sequential(
-        #     nn.Linear(in_features=512, out_features=output_num),
-        #     nn.Softmax(dim=-1)
-        # )
+        # model = build_resnet()
+
+        model = models.resnet18(pretrained=pretrained)
+        model.fc = nn.Sequential(
+            nn.Linear(in_features=512, out_features=output_num),
+            nn.Softmax(dim=-1)
+        )
         # model = model.resnet18(weights=model.ResNet18_Weights.IMAGENET1K_V1)
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
