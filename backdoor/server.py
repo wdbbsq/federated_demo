@@ -37,6 +37,7 @@ class Server:
             else:
                 data.add_(update_per_layer)
 
+    @torch.no_grad()
     def eval(self, data_loader, model, device, print_perform=False):
         criterion = torch.nn.CrossEntropyLoss()
         model.eval()  # switch to eval status

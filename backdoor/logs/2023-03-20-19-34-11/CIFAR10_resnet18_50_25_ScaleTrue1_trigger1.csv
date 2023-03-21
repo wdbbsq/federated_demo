@@ -1,0 +1,3 @@
+epoch,test_clean_acc,test_clean_loss,test_bta,test_asr_loss
+0,0.1,,0.0,
+1,0.1,2.3051339833500286,0.0,2.3763778194451866
