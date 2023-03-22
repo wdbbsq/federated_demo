@@ -19,8 +19,8 @@ def build_poisoned_training_sets(is_train, args):
 
     if args.dataset == 'CIFAR10':
         # trainset = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
-        trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
-                                transform=transform, need_idx=True)
+        trainset = CIFAR10Poison(args, args.data_path, train=is_train, transform=transform, download=True,
+                                 need_idx=True)
         nb_classes = 10
     elif args.dataset == 'MNIST':
         trainset = MNISTPoison(args, args.data_path, train=is_train, download=True,
@@ -42,7 +42,7 @@ def build_testset(is_train, args):
 
     if args.dataset == 'CIFAR10':
         testset_clean = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
-        testset_poisoned = CIFAR10Poison(args, args.data_path, train=is_train, download=True, transform=transform)
+        testset_poisoned = CIFAR10Poison(args, args.data_path, train=is_train, transform=transform, download=True)
         nb_classes = 10
     elif args.dataset == 'MNIST':
         testset_clean = datasets.MNIST(args.data_path, train=is_train, download=True, transform=transform)

@@ -7,20 +7,6 @@ import os
 import torch
 
 
-class TriggerHandler(object):
-    def __init__(self, trigger_path, trigger_size, trigger_label, img_width, img_height):
-        self.trigger_img = Image.open(trigger_path).convert('RGB')
-        self.trigger_size = trigger_size
-        self.trigger_img = self.trigger_img.resize((trigger_size, trigger_size))
-        self.trigger_label = trigger_label
-        self.img_width = img_width
-        self.img_height = img_height
-
-    def put_trigger(self, img):
-        img.paste(self.trigger_img, (self.img_width - self.trigger_size, self.img_height - self.trigger_size))
-        return img
-
-
 class CIFAR10Poison(CIFAR10):
     def __init__(
             self,
@@ -36,8 +22,6 @@ class CIFAR10Poison(CIFAR10):
 
         self.width, self.height, self.channels = self.__shape_info__()
 
-        self.trigger_handler = TriggerHandler(args.trigger_path, args.trigger_size, args.trigger_label, self.width,
-                                              self.height)
         self.poisoning_rate = args.poisoning_rate if train else 1.0
         indices = range(len(self.targets))
         # 随机选择投毒样本
@@ -59,8 +43,8 @@ class CIFAR10Poison(CIFAR10):
         # NOTE: According to the threat model, the trigger should be put on the image before transform.
         # (The attacker can only poison the dataset)
         if index in self.poi_indices:
-            target = self.trigger_handler.trigger_label
-            img = self.trigger_handler.put_trigger(img)
+            # exchange labels
+            print(1)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -87,8 +71,6 @@ class MNISTPoison(MNIST):
         self.width, self.height = self.__shape_info__()
         self.channels = 1
 
-        self.trigger_handler = TriggerHandler(args.trigger_path, args.trigger_size, args.trigger_label, self.width,
-                                              self.height)
         self.poisoning_rate = args.poisoning_rate if train else 1.0
         indices = range(len(self.targets))
         # 随机选择投毒样本
@@ -117,8 +99,8 @@ class MNISTPoison(MNIST):
         # NOTE: According to the threat model, the trigger should be put on the image before transform.
         # (The attacker can only poison the dataset)
         if index in self.poi_indices:
-            target = self.trigger_handler.trigger_label
-            img = self.trigger_handler.put_trigger(img)
+            # exchange labels
+            print(1)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -142,67 +124,3 @@ def generate_poisoned_data(indices, data_len, total_workers, poisoning_rate, adv
             poi_indices += list(random.sample(client_indices, k=int(data_pre_client * poisoning_rate)))
     return poi_indices
 
-
-"""
-methods from `How to backdoor federated learning`
-"""
-
-
-def poison_train_dataset(conf, train_dataset):
-    """
-    生成中毒数据集
-    :param train_dataset:
-    :param conf:
-    :return:
-    """
-    #
-    # return [(self.train_dataset[self.params['poison_image_id']][0],
-    # torch.IntTensor(self.params['poison_label_swap']))]
-    cifar_classes = {}
-    for ind, x in enumerate(train_dataset):
-        _, label = x
-        if ind in conf.params['poison_images'] or ind in conf.params['poison_images_test']:
-            continue
-        if label in cifar_classes:
-            cifar_classes[label].append(ind)
-        else:
-            cifar_classes[label] = [ind]
-    indices = list()
-    # create array that starts with poisoned images
-
-    # create candidates:
-    # range_no_id = cifar_classes[1]
-    # range_no_id.extend(cifar_classes[1])
-
-    # 剔除数据集中的后门样本
-    range_no_id = list(range(50000))
-    for image in conf.params['poison_images'] + conf.params['poison_images_test']:
-        if image in range_no_id:
-            range_no_id.remove(image)
-
-    # add random images to other parts of the batch
-    for batches in range(0, conf.params['size_of_secret_dataset']):
-        range_iter = random.sample(range_no_id, conf.params['batch_size'])
-        # range_iter[0] = self.params['poison_images'][0]
-        indices.extend(range_iter)
-        # range_iter = random.sample(range_no_id,
-        #            self.params['batch_size']
-        #                -len(self.params['poison_images'])*self.params['poisoning_per_batch'])
-        # for i in range(0, self.params['poisoning_per_batch']):
-        #     indices.extend(self.params['poison_images'])
-        # indices.extend(range_iter)
-    return torch.utils.data.DataLoader(train_dataset,
-                                       batch_size=conf.params['batch_size'],
-                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(indices)
-                                       )
-
-
-def poison_test_dataset(conf, train_dataset):
-    #
-    # return [(self.train_dataset[self.params['poison_image_id']][0],
-    # torch.IntTensor(self.params['poison_label_swap']))]
-    return torch.utils.data.DataLoader(train_dataset,
-                                       batch_size=conf.params['batch_size'],
-                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(
-                                           range(1000))
-                                       )

@@ -15,28 +15,20 @@ from utils.serialization import save_as_file
 from utils.params import init_parser
 from utils.file_utils import prepare_operation
 
-from backdoor.client import Client
-from backdoor.server import Server
-from backdoor.attack.dataset import build_poisoned_training_sets, build_testset
-from backdoor.defense.clip import clip_by_norm
+from poison.client import Client
+from poison.server import Server
+from poison.attack.dataset import build_poisoned_training_sets, build_testset
 
-LOG_PREFIX = './backdoor/logs'
+LOG_PREFIX = './poison/logs'
 LAYER_NAME = '7.weight'
 
 if __name__ == '__main__':
 
-    parser = init_parser('federated backdoor')
+    parser = init_parser('federated poison')
 
     # poison settings
-    parser.add_argument('--attack_type', default='central')
-    parser.add_argument('--poisoning_rate', type=float, default=0.1,
-                        help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
-    parser.add_argument('--trigger_label', type=int, default=1,
-                        help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
-    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_10.png",
-                        help='Trigger Path (default: ./backdoor/triggers/trigger_white.png)')
-    parser.add_argument('--trigger_size', type=int, default=5,
-                        help='Trigger Size (int, default: 5)')
+    parser.add_argument('--poisoning_rate', type=float, default=0.1)
+
     parser.add_argument('--need_scale', type=bool, default=False)
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
     epochs = list(range(40))
@@ -44,14 +36,12 @@ if __name__ == '__main__':
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', default='None', help='[None, Flex]')
-    # other setting
-    parser.add_argument('--need_serialization', type=bool, default=False)
 
     args = parser.parse_args()
 
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num)
-    train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
+    train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -80,8 +70,6 @@ if __name__ == '__main__':
         else:
             candidates = random.sample(clients, args.k_workers)
 
-        client_ids_map = get_clients_indices(candidates)
-
         # 客户端上传的模型更新
         weight_accumulator = dict()
         for name, params in server.global_model.state_dict().items():
@@ -98,26 +86,6 @@ if __name__ == '__main__':
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 
-        if attack_now:
-            # 计算余弦相似度
-            cos_list = np.zeros([args.k_workers, args.k_workers])
-            for i, j in list(combinations(local_updates, 2)):
-                cos = cosine_similarity(i['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy(),
-                                        j['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
-                x, y = client_ids_map.get(i['id']), client_ids_map.get(j['id'])
-                cos_list[x][y] = cos
-                cos_list[y][x] = cos
-            for i in range(args.k_workers):
-                cos_list[i][i] = 1
-
-            save_as_file({
-                'cos_list': cos_list,
-                'client_ids_map': client_ids_map
-            }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
-
-        if args.defense is not None:
-            clip_by_norm(server.global_model, LAYER_NAME)
-
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
         status.append({
@@ -125,7 +93,7 @@ if __name__ == '__main__':
             **{f'test_{k}': v for k, v in test_status.items()}
         })
         df = pd.DataFrame(status)
-        df.to_csv(f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_trigger{args.trigger_label}.csv",
+        df.to_csv(f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}.csv",
                   index=False, encoding='utf-8')
 
     print(f'Fininsh Trainning in {time.time() - start_time}\n ')

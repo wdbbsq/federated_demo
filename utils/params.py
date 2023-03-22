@@ -12,8 +12,7 @@ def init_parser(description):
     parser.add_argument('--load_local', action='store_true',
                         help='train model or directly load model (default true, if you add this param, then load '
                              'trained local model to evaluate the performance)')
-    parser.add_argument('--model_name', default='badnets',
-                        help='[badnets, resnet18]')
+    parser.add_argument('--model_name', default='badnets', help='[badnets, resnet18]')
     parser.add_argument('--loss', default='mse',
                         help='Which loss function to use (mse or cross, default: mse)')
     parser.add_argument('--optimizer', default='sgd',
@@ -24,10 +23,9 @@ def init_parser(description):
                         help='Batch size to split dataset, default: 64')
     parser.add_argument('--test_batch_size', type=int, default=64,
                         help='Batch size to split dataset, default: 64')
-    parser.add_argument('--num_workers', type=int, default=2,
-                        help='')
-    parser.add_argument('--data_path', default='./data/',
-                        help='Place to load dataset (default: ./dataset/)')
+    parser.add_argument('--num_workers', type=int, default=2, help='')
+    parser.add_argument('--data_path', default='~/.torch',
+                        help='Place to load dataset (default: ~/.torch)')
 
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--lambda_', type=float, default=0.01, help='')
