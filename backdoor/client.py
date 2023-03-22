@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from typing import Dict
-from backdoor import model
+from backdoor.model import get_model
 
 import torch
 import torch.nn.functional as F
@@ -13,10 +13,10 @@ class Client:
         self.args = args
         self.device = device
         self.local_epochs = args.local_epochs
-        self.local_model = model.get_model(args.model_name,
-                                           device,
-                                           input_channels=args.input_channels,
-                                           output_num=args.nb_classes)
+        self.local_model = get_model(args.model_name,
+                                     device,
+                                     input_channels=args.input_channels,
+                                     output_num=args.nb_classes)
         self.client_id = client_id
         self.is_adversary = is_adversary
 
@@ -49,7 +49,7 @@ class Client:
         local_update = dict()
         for name, data in self.local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
-        
+
         # 缩放客户端更新
         if self.is_adversary and self.args.need_scale and attack_now:
             scale_update(self.args.weight_scale, local_update)

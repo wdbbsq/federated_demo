@@ -6,6 +6,7 @@ from torchvision.datasets import CIFAR10, MNIST
 import os
 import torch
 
+
 class TriggerHandler(object):
     def __init__(self, trigger_path, trigger_size, trigger_label, img_width, img_height):
         self.trigger_img = Image.open(trigger_path).convert('RGB')
@@ -43,7 +44,8 @@ class CIFAR10Poison(CIFAR10):
         # 随机选择投毒样本
         self.poi_indices = []
         if need_idx:
-            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_workers, self.poisoning_rate, adversary_list)
+            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_workers,
+                                                      self.poisoning_rate, adversary_list)
         else:
             self.poi_indices = list(random.sample(indices, k=int(len(indices) * self.poisoning_rate)))
 
@@ -81,7 +83,7 @@ class MNISTPoison(MNIST):
             download: bool = False,
             need_idx: bool = False,
             adversary_list: list = [],
-        ) -> None:
+    ) -> None:
         super().__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
 
         self.width, self.height = self.__shape_info__()
@@ -94,7 +96,8 @@ class MNISTPoison(MNIST):
         # 随机选择投毒样本
         self.poi_indices = []
         if need_idx:
-            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_workers, self.poisoning_rate, adversary_list)
+            self.poi_indices = generate_poisoned_data(indices, len(self.targets), args.total_workers,
+                                                      self.poisoning_rate, adversary_list)
         else:
             self.poi_indices = list(random.sample(indices, k=int(len(indices) * self.poisoning_rate)))
         print(f"Poison {len(self.poi_indices)} over {len(indices)} samples ( poisoning rate {self.poisoning_rate})")
@@ -127,6 +130,7 @@ class MNISTPoison(MNIST):
 
         return img, target
 
+
 def generate_poisoned_data(indices, data_len, total_workers, poisoning_rate, adversary_list):
     """
     get poisoned data index
@@ -135,7 +139,7 @@ def generate_poisoned_data(indices, data_len, total_workers, poisoning_rate, adv
     data_pre_client = int(data_len / total_workers)
     for client_id in range(total_workers):
         # 客户端训练集在训练集中的下标范围
-        client_indices = indices[client_id * data_pre_client : (client_id + 1) * data_pre_client]
+        client_indices = indices[client_id * data_pre_client: (client_id + 1) * data_pre_client]
         if client_id in adversary_list:
             poi_indices += list(random.sample(client_indices, k=int(data_pre_client * poisoning_rate)))
     return poi_indices
@@ -144,6 +148,7 @@ def generate_poisoned_data(indices, data_len, total_workers, poisoning_rate, adv
 """
 methods from `How to backdoor federated learning`
 """
+
 
 def poison_train_dataset(conf, train_dataset):
     """

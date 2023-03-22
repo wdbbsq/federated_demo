@@ -175,5 +175,4 @@
 #     print('{:s}:\t{:.2f}'.format(c.name, mean_square_error(y_pred, y_test)))
 # pass
 
-arr = [1,2,3]
-print(f'{arr}')
+

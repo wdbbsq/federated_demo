@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from torchvision import models, datasets, transforms
 from .gradient import calculate_model_gradient, calculate_parameter_gradients
 
@@ -33,6 +34,10 @@ def get_dataset(path, name):
 def init_model(name="vgg16", pretrained=True):
     if name == "resnet18":
         model = models.resnet18(pretrained=pretrained)
+        # model.fc = nn.Sequential(
+        #     nn.Linear(in_features=512, out_features=10),
+        #     nn.Softmax(dim=-1)
+        # )
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
     elif name == "densenet121":
