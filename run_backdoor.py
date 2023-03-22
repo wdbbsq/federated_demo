@@ -18,7 +18,7 @@ from utils.file_utils import prepare_operation
 from backdoor.client import Client
 from backdoor.server import Server
 from backdoor.attack.dataset import build_poisoned_training_sets, build_testset
-from backdoor.defense.clip import clip_by_norm
+# from backdoor.defense.clip import clip_by_norm
 
 LOG_PREFIX = './backdoor/logs'
 LAYER_NAME = '7.weight'
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # poison settings
     parser.add_argument('--attack_type', default='central')
-    parser.add_argument('--poisoning_rate', type=float, default=0.1,
+    parser.add_argument('--poisoning_rate', type=float, default=0.5,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
@@ -115,8 +115,8 @@ if __name__ == '__main__':
                 'client_ids_map': client_ids_map
             }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
 
-        if args.defense is not None:
-            clip_by_norm(server.global_model, LAYER_NAME)
+        # if args.defense is not None:
+        #     clip_by_norm(server.global_model, LAYER_NAME)
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)

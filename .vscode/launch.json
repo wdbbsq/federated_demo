@@ -17,7 +17,7 @@
             "name": "Backdoor mnist",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/backdoor/__init__.py",
+            "program": "${workspaceFolder}/run_backdoor.py",
             "console": "integratedTerminal",
             "args": [
                 "--need_scale", "True",
@@ -70,7 +70,7 @@
                 "--momentum", "0.0001",
 
                 "--total_workers", "4",
-                "--k_workers", "3",
+                "--k_workers", "1",
 
                 "--need_scale", "True",
                 "--weight_scale", "4",
