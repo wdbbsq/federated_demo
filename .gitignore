@@ -2,4 +2,3 @@
 /.idea/
 **/__pycache__/
 backdoor/logs/2023-03-05-22-48-42_CIFAR10_trigger1.csv
-backdoor/logs/MNIST_trigger1.csv
