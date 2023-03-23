@@ -2,7 +2,7 @@ import argparse
 
 import torch
 import torchvision
-import torchvision.transforms as transforms
+from torchvision import transforms, datasets
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -75,14 +75,15 @@ if __name__ == '__main__':
                         help='Trigger Size (int, default: 5)')
     args = parser.parse_args()
 
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-    # transform = transforms.Compose([transforms.ToTensor(),
-    #                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    # transform = transforms.Compose([
+    #     transforms.ToTensor(),
+    #     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    # ])
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    testset = CIFAR10Poison(args, args.data_path, train=False, download=True, transform=transform)
+    testset = datasets.CIFAR10(args.data_path, download=True, transform=transform)
+    # testset = CIFAR10Poison(args, args.data_path, train=False, download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
 
     classes = ('plane', 'car', 'bird', 'cat',

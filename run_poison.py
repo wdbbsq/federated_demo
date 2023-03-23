@@ -17,7 +17,7 @@ from utils.file_utils import prepare_operation
 
 from poison.client import Client
 from poison.server import Server
-from poison.attack.dataset import build_poisoned_training_sets, build_testset
+from poison.attack.dataset import build_poisoned_training_sets, build_test_set
 
 LOG_PREFIX = './poison/logs'
 LAYER_NAME = '7.weight'
@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
     # poison settings
     parser.add_argument('--poisoning_rate', type=float, default=0.1)
+    parser.add_argument('--labels', type=list, default=[1, 9])
 
     parser.add_argument('--need_scale', type=bool, default=False)
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num)
     # 初始化数据集
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
-    dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
+    dataset_val_clean, dataset_val_poisoned = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     args.input_channels = train_datasets.channels

@@ -60,4 +60,18 @@ if __name__ == "__main__":
          xlabel='轮次',
          ylabel='准确率')
 
+    plot(y_data=(get_data(work_dir='../backdoor/logs/',
+                          filename='MNIST_badnets_2023-03-08-18-58-57_trigger0.csv',
+                          selected_rows=[1]) +
+                 get_data(work_dir='../backdoor/logs/',
+                          filename='MNIST_trigger1.csv',
+                          selected_rows=[1])
+                 ),
+         legends=['联邦隐私保护框架',
+                  '传统联邦学习'],
+         colors=['b', 'r'],
+         linestyles=['-', '-'],
+         xlabel='轮次',
+         ylabel='准确率')
+
     pass
