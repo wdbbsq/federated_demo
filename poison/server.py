@@ -7,7 +7,7 @@ from poison.model import get_model
 
 
 class Server:
-    def __init__(self, args, dataset_val_clean, dataset_val_poisoned, device):
+    def __init__(self, args, dataset_val_clean, device):
         self.args = args
         self.global_model = get_model(args.model_name,
                                       device,
@@ -16,9 +16,6 @@ class Server:
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
                                            shuffle=True)
-        self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
-                                              batch_size=args.batch_size,
-                                              shuffle=True)
 
     def model_aggregate(self, weight_accumulator):
         # for name, sum_update in weight_accumulator.items():
@@ -71,12 +68,10 @@ class Server:
 
     def evaluate_badnets(self, device):
         mta = self.eval(self.loader_val_clean, self.global_model, device, print_perform=True)
-        bta = self.eval(self.loader_val_poisoned, self.global_model, device, print_perform=False)
         # mta = model_eval(self.global_model, self.loader_val_clean, device)
-        # bta = model_eval(self.global_model, self.loader_val_poisoned, device)
         return {
-            'clean_acc': mta['acc'], 'clean_loss': mta['loss'],
-            'bta': bta['acc'], 'asr_loss': bta['loss'],
+            'acc': mta['acc'],
+            'loss': mta['loss']
         }
 
 

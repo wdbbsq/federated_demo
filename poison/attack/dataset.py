@@ -16,18 +16,16 @@ def build_init_data(dataname, download, dataset_path):
 def build_poisoned_training_sets(is_train, args):
     transform, detransform = build_transform(args.dataset, is_train=True)
 
-    if args.dataset == 'MNIST':
-        trainset = MNISTPoison(args, args.data_path, train=is_train, download=True,
+    if args.attack:
+        train_set = MNISTPoison(args, args.data_path, train=is_train, download=True,
                                transform=transform, need_idx=True)
-        nb_classes = 10
     else:
-        raise NotImplementedError()
-
+        train_set = datasets.MNIST(args.data_path, train=is_train, download=True,
+                                   transform=transform)
+    nb_classes = 10
     assert nb_classes == args.nb_classes
-    print("Number of the class = %d" % args.nb_classes)
-    print(trainset)
 
-    return trainset, nb_classes
+    return train_set, nb_classes
 
 
 def build_test_set(is_train, args):
@@ -36,7 +34,6 @@ def build_test_set(is_train, args):
 
     if args.dataset == 'MNIST':
         testset_clean = datasets.MNIST(args.data_path, train=is_train, download=True, transform=transform)
-        testset_poisoned = MNISTPoison(args, args.data_path, train=is_train, download=True, transform=transform)
         nb_classes = 10
     else:
         raise NotImplementedError()
@@ -44,7 +41,7 @@ def build_test_set(is_train, args):
     assert nb_classes == args.nb_classes
     print("Number of the class = %d" % args.nb_classes)
 
-    return testset_clean, testset_poisoned
+    return testset_clean
 
 
 def build_transform(dataset, is_train=False):

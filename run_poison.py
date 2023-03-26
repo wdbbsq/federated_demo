@@ -26,27 +26,29 @@ if __name__ == '__main__':
 
     parser = init_parser('federated poison')
 
-    # poison settings
+    # attack settings
+    parser.add_argument('--attack', type=bool, default=False)
+
     parser.add_argument('--poisoning_rate', type=float, default=0.1)
     parser.add_argument('--labels', type=list, default=[1, 9])
 
     parser.add_argument('--need_scale', type=bool, default=False)
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
-    epochs = list(range(40))
-    parser.add_argument('--attack_epochs', type=list, default=epochs[19:],
+    epochs = list(range(20))
+    parser.add_argument('--attack_epochs', type=list, default=epochs,
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', default='None', help='[None, Flex]')
 
     args = parser.parse_args()
 
-    args.adversary_list = random.sample(range(args.total_workers), args.adversary_num)
+    args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
     # 初始化数据集
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
-    dataset_val_clean, dataset_val_poisoned = build_test_set(is_train=False, args=args)
+    dataset_val_clean = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    args.input_channels = train_datasets.channels
+    args.input_channels = 1
 
     clients = []
     clean_clients = []
@@ -58,31 +60,27 @@ if __name__ == '__main__':
         else:
             clean_clients.append(clients[i])
 
-    server = Server(args, dataset_val_clean, dataset_val_poisoned, device)
+    server = Server(args, dataset_val_clean, device)
 
     status = []
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
     for epoch in range(args.global_epochs):
         # 本轮迭代是否进行攻击
-        attack_now = len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
+        attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
             candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
         else:
-            candidates = random.sample(clients, args.k_workers)
+            # 本轮不攻击，则保证没有恶意客户端
+            candidates = random.sample(clean_clients, args.k_workers)
 
         # 客户端上传的模型更新
         weight_accumulator = dict()
         for name, params in server.global_model.state_dict().items():
             weight_accumulator[name] = torch.zeros_like(params)
 
-        local_updates = []
         for c in candidates:
             local_update = c.local_train(server.global_model, epoch, attack_now)
-            local_updates.append({
-                'id': c.client_id,
-                'local_update': local_update
-            })
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
