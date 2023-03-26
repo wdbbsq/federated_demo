@@ -50,6 +50,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    args.k_workers = int(args.total_workers * args.global_lr)
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
