@@ -1,4 +1,14 @@
 import numpy
+from scipy.spatial import distance
+
+
+def calc_dist(model_dict_a, model_dict_b, layer_name):
+    return distance.cdist(get_vector(model_dict_a, layer_name),
+                          get_vector(model_dict_b, layer_name), "euclidean")[0][0]
+
+
+def get_vector(model_dict, layer_name):
+    return model_dict[layer_name].reshape(1, -1).cpu().numpy()
 
 
 def calculate_model_gradient(model_1, model_2):

@@ -18,6 +18,7 @@ from utils.file_utils import prepare_operation
 from poison.client import Client
 from poison.server import Server
 from poison.attack.dataset import build_poisoned_training_sets, build_test_set
+from poison.defense import get_clean_updates
 
 LOG_PREFIX = './poison/logs'
 LAYER_NAME = '7.weight'
@@ -38,7 +39,8 @@ if __name__ == '__main__':
     parser.add_argument('--attack_epochs', type=list, default=epochs,
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
-    parser.add_argument('--defense', default='None', help='[None, Flex]')
+    parser.add_argument('--defense', type=bool, default='False')
+    parser.add_argument('--defense_method', default='clique', help='[clique, krum, mean]')
 
     args = parser.parse_args()
 
@@ -80,12 +82,19 @@ if __name__ == '__main__':
         for name, params in server.global_model.state_dict().items():
             weight_accumulator[name] = torch.zeros_like(params)
 
+        local_updates = []
         for c in candidates:
             local_update = c.local_train(server.global_model, epoch, attack_now)
+            if args.defense:
+                local_updates.append({
+                    'id': c.client_id,
+                    'local_update': local_update
+                })
             # 累加客户端更新
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
-
+        if args.defense:
+            cliques = get_clean_updates(local_updates)
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
         status.append({
@@ -93,7 +102,8 @@ if __name__ == '__main__':
             **{f'test_{k}': v for k, v in test_status.items()}
         })
         df = pd.DataFrame(status)
-        df.to_csv(f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}.csv",
-                  index=False, encoding='utf-8')
+        df.to_csv(
+            f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}.csv",
+            index=False, encoding='utf-8')
 
     print(f'Fininsh Trainning in {time.time() - start_time}\n ')

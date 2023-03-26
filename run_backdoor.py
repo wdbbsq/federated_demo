@@ -14,6 +14,7 @@ from utils import get_clients_indices
 from utils.serialization import save_as_file
 from utils.params import init_parser
 from utils.file_utils import prepare_operation
+from utils.gradient import get_vector
 
 from backdoor.client import Client
 from backdoor.server import Server
@@ -104,8 +105,8 @@ if __name__ == '__main__':
             # 计算余弦相似度
             cos_list = np.zeros([args.k_workers, args.k_workers])
             for i, j in list(combinations(local_updates, 2)):
-                cos = cosine_similarity(i['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy(),
-                                        j['local_update'][LAYER_NAME].reshape(1, -1).cpu().numpy())[0][0]
+                cos = cosine_similarity(get_vector(i['local_update'], LAYER_NAME),
+                                        get_vector(j['local_update'], LAYER_NAME))[0][0]
                 x, y = client_ids_map.get(i['id']), client_ids_map.get(j['id'])
                 cos_list[x][y] = cos
                 cos_list[y][x] = cos
