@@ -45,6 +45,7 @@
                 "--k_workers", "10",
                 // "--local_epochs", "3",
 
+                "--attack", "True",
                 "--need_scale", "True",
                 // "--weight_scale", "4",
                 "--weight_scale", "4",
