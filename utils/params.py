@@ -33,8 +33,8 @@ def init_parser(description):
 
     # federated settings
     parser.add_argument('--total_workers', type=int, default=4)
-    parser.add_argument('--k_workers', type=int, default=3,
-                        help='clients num selected for each epoch')
+    parser.add_argument('--global_lr', type=float, default=0.75)
+
     parser.add_argument('--adversary_num', type=int, default=1)
     parser.add_argument('--local_epochs', type=int, default=2)
 

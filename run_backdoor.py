@@ -28,6 +28,7 @@ if __name__ == '__main__':
     parser = init_parser('federated backdoor')
 
     # poison settings
+    parser.add_argument('--atack', type=bool, default=False)
     parser.add_argument('--attack_type', default='central')
     parser.add_argument('--poisoning_rate', type=float, default=0.5,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
@@ -49,7 +50,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    args.adversary_list = random.sample(range(args.total_workers), args.adversary_num)
+    args.k_workers = int(args.total_workers * args.global_lr)
+    args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
     dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
@@ -73,12 +75,12 @@ if __name__ == '__main__':
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
     for epoch in range(args.global_epochs):
         # 本轮迭代是否进行攻击
-        attack_now = len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
+        attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
             candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
         else:
-            candidates = random.sample(clients, args.k_workers)
+            candidates = random.sample(clean_clients, args.k_workers)
 
         client_ids_map = get_clients_indices(candidates)
 
