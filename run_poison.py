@@ -79,6 +79,8 @@ if __name__ == '__main__':
             # 本轮不攻击，则保证没有恶意客户端
             candidates = random.sample(clean_clients, args.k_workers)
 
+        client_ids_map = get_clients_indices(candidates)
+
         # 客户端上传的模型更新
         weight_accumulator = dict()
         for name, params in server.global_model.state_dict().items():
@@ -92,11 +94,15 @@ if __name__ == '__main__':
                     'id': c.client_id,
                     'local_update': local_update
                 })
-            # 累加客户端更新
-            for name, params in server.global_model.state_dict().items():
-                weight_accumulator[name].add_(local_update[name])
+            else:
+                # 累加客户端更新
+                for name, params in server.global_model.state_dict().items():
+                    weight_accumulator[name].add_(local_update[name])
         if args.defense:
-            # cliques = get_clean_updates(local_updates)
+            clean_nodes = get_clean_updates(local_updates, args.defense_method)
+            for idx in clean_nodes:
+                for name, params in server.global_model.state_dict().items():
+                    weight_accumulator[name].add_(local_updates[client_ids_map.get(idx)][name])
             if args.need_serialization:
                 save_as_file(local_updates, f'{LOG_PREFIX}/{epoch}_dist')
 
