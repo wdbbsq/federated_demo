@@ -42,6 +42,8 @@ if __name__ == '__main__':
     parser.add_argument('--defense', type=bool, default='False')
     parser.add_argument('--defense_method', default='clique', help='[clique, krum, mean]')
 
+    # other
+    parser.add_argument('--need_serialization', type=bool, default=False)
     args = parser.parse_args()
 
     args.k_workers = int(args.total_workers * args.global_lr)
@@ -94,7 +96,10 @@ if __name__ == '__main__':
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
         if args.defense:
-            cliques = get_clean_updates(local_updates)
+            # cliques = get_clean_updates(local_updates)
+            if args.need_serialization:
+                save_as_file(local_updates, f'{LOG_PREFIX}/{epoch}_dist')
+
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
         status.append({
