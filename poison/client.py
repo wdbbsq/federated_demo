@@ -5,10 +5,10 @@ from poison.model import get_model
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
+from torch.utils.data.sampler import SubsetRandomSampler
+from utils.optimizer import get_optimizer
 
 class Client:
-
     def __init__(self, args, train_dataset, device, client_id=-1, is_adversary=False):
         self.args = args
         self.device = device
@@ -26,15 +26,18 @@ class Client:
         self.train_loader = DataLoader(train_dataset,
                                        batch_size=args.batch_size,
                                        num_workers=args.num_workers,
-                                       sampler=torch.utils.data.sampler.SubsetRandomSampler(train_indices)
-                                       )
+                                       sampler=SubsetRandomSampler(train_indices))
 
     def local_train(self, global_model, global_epoch, attack_now=False):
+        """
+        客户端本地训练
+        """
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
-        optimizer = torch.optim.SGD(self.local_model.parameters(),
-                                    lr=self.args.lr,
-                                    momentum=self.args.momentum)
+        optimizer = get_optimizer(self.local_model, 
+                                  self.args.lr, 
+                                  self.args.momentum,
+                                  self.args.optimizer)
         self.local_model.train()
 
         for epoch in range(self.local_epochs):

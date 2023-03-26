@@ -94,5 +94,6 @@ class MNISTPoison(MNIST):
                 label_a_set.append(idx)
             elif self.targets[idx] == self.label_b:
                 label_b_set.append(idx)
-        return list(random.sample(label_a_set, k=poisoned_pre_client)) + \
-            list(random.sample(label_b_set, k=poisoned_pre_client))
+        return list(random.sample(label_a_set, k=min(len(label_a_set), poisoned_pre_client))) + \
+            list(random.sample(label_b_set, k=min(len(label_b_set), poisoned_pre_client)))
+    

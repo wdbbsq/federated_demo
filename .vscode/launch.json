@@ -79,6 +79,30 @@
             "justMyCode": true
         },
         {
+            "name": "Poison",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_poison.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "--global_epochs", "20",
+                // "--model_name", "resnet18",
+
+                "--optimizer", "adam",
+                "--lr", "0.001",
+
+                "--total_workers", "24",
+                "--k_workers", "20",
+                
+                // "--attack", "True",
+                "--need_scale", "False",
+                "--weight_scale", "4",
+                "--adversary_num", "3",
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "Baseline",
             "type": "python",
             "request": "launch",
