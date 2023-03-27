@@ -40,7 +40,7 @@ def clique(model_updates):
             if dist < THRESHOLD:
                 print(dist)
                 graph.add_edge(i['id'], j['id'])
-        plot_graph(graph)
+        # plot_graph(graph)
         it = find_cliques(graph)
         for cli in it:
             if len(cli) > len(e):

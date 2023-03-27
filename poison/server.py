@@ -1,9 +1,10 @@
 import torch
 from torch.utils.data import DataLoader
-
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, \
+    confusion_matrix
 from tqdm import tqdm
 from poison.model import get_model
+from utils.serialization import save_as_file
 
 
 class Server:
@@ -13,20 +14,11 @@ class Server:
                                       device,
                                       input_channels=args.input_channels,
                                       output_num=args.nb_classes)
-        self.loader_val_clean = DataLoader(dataset_val_clean,
-                                           batch_size=args.batch_size,
-                                           shuffle=True)
+        self.data_loader = DataLoader(dataset_val_clean,
+                                      batch_size=args.batch_size,
+                                      shuffle=True)
 
     def model_aggregate(self, weight_accumulator):
-        # for name, sum_update in weight_accumulator.items():
-        #     scale = self.args.k_workers / self.args.total_workers
-        #     average_update = scale * sum_update
-        #     model_weight = self.global_model.state_dict()[name]
-        #     if model_weight.type() == average_update.type():
-        #         model_weight.add_(average_update)
-        #     else:
-        #         model_weight.add_(average_update.to(torch.int64))
-
         for name, data in self.global_model.state_dict().items():
             update_per_layer = weight_accumulator[name] * self.args.lambda_
             if data.type() != update_per_layer.type():
@@ -34,18 +26,18 @@ class Server:
             else:
                 data.add_(update_per_layer)
 
-    def eval(self, data_loader, model, device, print_perform=False):
+    def eval_model(self, device, global_epoch, file_path):
         criterion = torch.nn.CrossEntropyLoss()
-        model.eval()  # switch to eval status
+        self.global_model.eval()  # switch to eval status
         y_true = []
         y_predict = []
         loss_sum = []
         with torch.no_grad():
-            for (batch_x, batch_y) in tqdm(data_loader):
+            for (batch_x, batch_y) in tqdm(self.data_loader):
                 batch_x = batch_x.to(device, non_blocking=True)
                 batch_y = batch_y.to(device, non_blocking=True)
 
-                batch_y_predict = model(batch_x)
+                batch_y_predict = self.global_model(batch_x)
 
                 loss = criterion(batch_y_predict, batch_y)
                 batch_y_predict = torch.argmax(batch_y_predict, dim=1)
@@ -57,21 +49,21 @@ class Server:
         y_predict = torch.cat(y_predict, 0)
         loss = sum(loss_sum) / len(loss_sum)
 
-        if print_perform:
-            print(classification_report(y_true.cpu(), y_predict.cpu(),
-                                        target_names=data_loader.dataset.classes))
+        y_true = y_true.cpu()
+        y_predict = y_predict.cpu()
+
+        print(classification_report(y_true, y_predict, target_names=self.data_loader.dataset.classes))
+
+        if global_epoch == (self.args.global_epochs - 1):
+            matrix = confusion_matrix(y_true, y_predict)
+            save_as_file(matrix, f'{file_path}/confusion_matrix')
 
         return {
-            "acc": accuracy_score(y_true.cpu(), y_predict.cpu()),
+            'acc': accuracy_score(y_true, y_predict),
+            'precision': precision_score(y_true, y_predict, average='micro'),
+            'recall': recall_score(y_true, y_predict, average='micro'),
+            'f1': f1_score(y_true, y_predict, average='micro'),
             "loss": loss,
-        }
-
-    def evaluate_badnets(self, device):
-        mta = self.eval(self.loader_val_clean, self.global_model, device, print_perform=True)
-        # mta = model_eval(self.global_model, self.loader_val_clean, device)
-        return {
-            'acc': mta['acc'],
-            'loss': mta['loss']
         }
 
 

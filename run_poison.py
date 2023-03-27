@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 save_as_file(local_updates, f'{LOG_PREFIX}/{epoch}_dist')
 
         server.model_aggregate(weight_accumulator)
-        test_status = server.evaluate_badnets(device)
+        test_status = server.eval_model(device, epoch, LOG_PREFIX)
         status.append({
             'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}
