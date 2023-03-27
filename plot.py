@@ -1,6 +1,6 @@
 import csv
 from typing import List
-
+from sklearn.metrics import confusion_matrix
 from pylab import *
 
 config = {
@@ -30,7 +30,7 @@ def get_data(work_dir, filename, selected_rows: List[int]):
 
 def get_confusion_matrix(trues, preds):
     labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    conf_matrix = confusion_matrix(trues, preds, labels)
+    conf_matrix = confusion_matrix(trues, preds, labels=labels)
     return conf_matrix
 
 
@@ -60,6 +60,8 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.ylabel(ylabel)
     plt.xticks(**tick_labels_style)
     plt.yticks(**tick_labels_style)
+    # x轴坐标显示为整数
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     for idx, data in enumerate(y_data):
         plt.plot(x_data, data, label=legends[idx], linewidth=1, color=colors[idx], linestyle=linestyles[idx])
 
@@ -67,22 +69,103 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.show()
 
 
-if __name__ == "__main__":
-    # backdoor baseline
-    # plot(y_data=(get_data(work_dir='backdoor/logs/',
-    #                       filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
-    #                       selected_rows=[1, 3]) +
-    #              get_data(work_dir='backdoor/logs/',
-    #                       filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-15-40-40_trigger1.csv',
-    #                       selected_rows=[1, 3])),
-    #      legends=['$\mathrm{MTA}$ 不攻击',
-    #               '$\mathrm{BTA}$ 不攻击',
-    #               '$\mathrm{MTA}$ 连续攻击',
-    #               '$\mathrm{BTA}$ 连续攻击'],
-    #      colors=['b', 'r', 'b', 'r'],
-    #      linestyles=['--', '--', '-', '-'],
-    #      xlabel='轮次',
-    #      ylabel='准确率')
+def poison_baseline():
+    """
+    投毒攻击基准实验
+    """
+    plot(y_data=(get_data(work_dir='poison/logs/2023-03-26-11-18-23/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[1]) +
+                 get_data(work_dir='poison/logs/2023-03-26-11-31-25/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[1]) +
+                 get_data(work_dir='poison/logs/2023-03-26-12-01-38/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[1])
+                 ),
+         csv_title='',
+         legends=[
+             '攻击者比例$\mathrm{ - 0\% }$',
+             '攻击者比例$\mathrm{ - 20\% }$',
+             '攻击者比例$\mathrm{ - 40\% }$',
+         ],
+         colors=['b', 'r', 'r'],
+         linestyles=['-', '-', '--'],
+         xlabel='轮次',
+         ylabel='准确率')
+
+    plot(y_data=(get_data(work_dir='poison/logs/2023-03-26-11-18-23/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[2]) +
+                 get_data(work_dir='poison/logs/2023-03-26-11-31-25/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[2]) +
+                 get_data(work_dir='poison/logs/2023-03-26-12-01-38/',
+                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                          selected_rows=[2])
+                 ),
+         csv_title='',
+         legends=[
+             '攻击者比例$\mathrm{ - 0\% }$',
+             '攻击者比例$\mathrm{ - 20\% }$',
+             '攻击者比例$\mathrm{ - 40\% }$',
+         ],
+         colors=['b', 'r', 'r'],
+         linestyles=['-', '-', '--'],
+         xlabel='轮次',
+         ylabel='损失值')
+
+
+def poison_defense():
+    """
+    投毒恶意检测性能
+    """
+    y_labels = ['准确率', '精确率', '召回率', '$\mathrm{ F_1 }$分数']
+    y_labels = ['准确率',]
+    for i in range(1):
+        plot(
+            y_data=(
+                    get_data(work_dir='poison/logs/2023-03-26-16-25-34/',
+                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                             selected_rows=[i + 1]) +
+                    get_data(work_dir='poison/logs/2023-03-27-10-22-54/',
+                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                             selected_rows=[i + 1]) +
+                    get_data(work_dir='poison/logs/2023-03-27-15-01-01/',
+                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                             selected_rows=[i + 1])
+            ),
+            csv_title='',
+            legends=[
+                '无攻击',
+                '攻击+无防护措施',
+                '攻击+恶意检测方案',
+            ],
+            colors=['b', 'r', 'r'],
+            linestyles=['-', '--', '-'],
+            xlabel='轮次',
+            ylabel=y_labels[i]
+        )
+
+
+def backdoor_baseline():
+    """
+    后门攻击基准实验
+    """
+    plot(y_data=(get_data(work_dir='backdoor/logs/',
+                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
+                          selected_rows=[1, 3]) +
+                 get_data(work_dir='backdoor/logs/',
+                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-15-40-40_trigger1.csv',
+                          selected_rows=[1, 3])),
+         legends=['$\mathrm{MTA}$ 不攻击',
+                  '$\mathrm{BTA}$ 不攻击',
+                  '$\mathrm{MTA}$ 连续攻击',
+                  '$\mathrm{BTA}$ 连续攻击'],
+         colors=['b', 'r', 'b', 'r'],
+         linestyles=['--', '--', '-', '-'],
+         xlabel='轮次',
+         ylabel='准确率')
 
     # plot(y_data=(get_data(work_dir='backdoor/logs/',
     #                       filename='MNIST_badnets_2023-03-08-18-58-57_trigger0.csv',
@@ -98,15 +181,11 @@ if __name__ == "__main__":
     #      xlabel='轮次',
     #      ylabel='准确率')
 
-    plot(y_data=(get_data(work_dir='poison/logs/2023-03-26-12-33-07/',
-                          filename='MNIST_badnets_24_20_ScaleTrue4.csv',
-                          selected_rows=[2])
-                 ),
-         legends=[
-                  'loss'],
-         colors=['b', 'r'],
-         linestyles=['-', '-'],
-         xlabel='轮次',
-         ylabel='准确率')
 
-    pass
+# backdoor_baseline()
+
+# poison_baseline()
+
+poison_defense()
+
+pass
