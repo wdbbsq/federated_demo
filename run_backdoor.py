@@ -131,4 +131,4 @@ if __name__ == '__main__':
         df.to_csv(f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_trigger{args.trigger_label}.csv",
                   index=False, encoding='utf-8')
 
-    print(f'Fininsh Trainning in {time.time() - start_time}\n ')
+    print(f'Finish Training in {time.time() - start_time}\n ')

@@ -1,21 +1,26 @@
 from tqdm import tqdm
-from utils import init_model
+from typing import Dict
+from poison.model import get_model
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-
-from phe import paillier
+from utils.optimizer import get_optimizer
+from inference.models.vision import LeNet
 
 
 class Client:
-    def __init__(self, args, train_dataset, client_id=-1):
+    def __init__(self, args, train_dataset, device, client_id=-1):
         self.args = args
+        self.device = device
         self.local_epochs = args.local_epochs
-        self.local_model = init_model(args.model_name)
+        self.local_model = LeNet().to(device)
+        # self.local_model = get_model(args.model_name,
+        #                              device,
+        #                              input_channels=args.input_channels,
+        #                              output_num=args.nb_classes)
         self.client_id = client_id
-        self.device = args.device
-        self.public_key, self.private_key = paillier.generate_paillier_keypair()
 
         all_range = list(range(len(train_dataset)))
         data_len = int(len(train_dataset) / args.total_workers)
@@ -25,19 +30,16 @@ class Client:
                                        num_workers=args.num_workers,
                                        sampler=SubsetRandomSampler(train_indices))
 
-    def decrypt_model(self):
-        if self.args.use_paillier:
-            print('got ya')
-            # 获取全局模型明文
-            # param = self.private_key.decrypt(enc_param)
-
-    def local_train(self, global_model, global_epoch):
-        self.decrypt_model()
+    def local_train(self, global_model, global_epoch, attack_now=False):
+        """
+        客户端本地训练
+        """
         for name, param in global_model.state_dict().items():
             self.local_model.state_dict()[name].copy_(param.clone())
-        optimizer = torch.optim.SGD(self.local_model.parameters(),
-                                    lr=self.args.lr,
-                                    momentum=self.args.momentum)
+        optimizer = get_optimizer(self.local_model,
+                                  self.args.lr,
+                                  self.args.momentum,
+                                  self.args.optimizer)
         self.local_model.train()
 
         for epoch in range(self.local_epochs):
@@ -53,7 +55,6 @@ class Client:
         for name, data in self.local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
 
-        print(f'# Epoch: {global_epoch} Client {self.client_id}  loss: {loss.item()}\n')
+        print(f'# Epoch: {global_epoch} Client {self.client_id} \n')
         return local_update
-
 

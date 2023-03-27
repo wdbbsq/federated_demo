@@ -6,6 +6,7 @@ from .gradient import calculate_model_gradient, calculate_parameter_gradients
 
 def get_dataset(path, name):
     if name == 'MNIST':
+
         train_dataset = datasets.MNIST(path, train=True, download=True, transform=transforms.ToTensor())
         eval_dataset = datasets.MNIST(path, train=False, transform=transforms.ToTensor())
 

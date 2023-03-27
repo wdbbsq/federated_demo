@@ -1,7 +1,7 @@
 import random
 
 import torch
-import torch.functional as F
+import torch.nn.functional as F
 
 from torchvision import transforms
 
