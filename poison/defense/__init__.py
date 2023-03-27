@@ -38,7 +38,6 @@ def clique(model_updates):
             graph.add_node(j['id'])
             dist = calc_dist(i['local_update'], j['local_update'], LAYER_NAME)
             if dist < THRESHOLD:
-                print(dist)
                 graph.add_edge(i['id'], j['id'])
         # plot_graph(graph)
         it = find_cliques(graph)

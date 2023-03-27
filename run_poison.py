@@ -39,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('--attack_epochs', type=list, default=epochs,
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
-    parser.add_argument('--defense', type=bool, default='False')
+    parser.add_argument('--defense', type=bool, default=False)
     parser.add_argument('--defense_method', default='clique', help='[clique, krum, mean]')
 
     # other

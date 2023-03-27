@@ -89,13 +89,15 @@
                 "--optimizer", "adam",
                 "--lr", "0.001",
                 "--total_workers", "24",
+                // "--global_lr", "0.5",
                 
                 "--attack", "True",
+                "--poisoning_rate", "0.5",
                 "--need_scale", "False",
                 "--weight_scale", "4",
-                "--adversary_num", "2",
+                "--adversary_num", "9",
 
-                "--defense", "True",
+                // "--defense", "True",
                 "--defense_method", "clique",
             ],
             "justMyCode": true
