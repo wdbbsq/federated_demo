@@ -96,7 +96,7 @@
                 "--adversary_num", "2",
 
                 "--defense", "True",
-                "--need_serialization", "True",
+                "--defense_method", "clique",
             ],
             "justMyCode": true
         },

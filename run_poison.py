@@ -102,7 +102,7 @@ if __name__ == '__main__':
             clean_nodes = get_clean_updates(local_updates, args.defense_method)
             for idx in clean_nodes:
                 for name, params in server.global_model.state_dict().items():
-                    weight_accumulator[name].add_(local_updates[client_ids_map.get(idx)][name])
+                    weight_accumulator[name].add_(local_updates[client_ids_map.get(idx)]['local_update'][name])
             if args.need_serialization:
                 save_as_file(local_updates, f'{LOG_PREFIX}/{epoch}_dist')
 

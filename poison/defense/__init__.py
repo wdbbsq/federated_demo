@@ -46,10 +46,10 @@ def clique(model_updates):
             if len(cli) > len(e):
                 e.clear()
                 e = cli
-        # if len(e) < n / 2:
-        #     e.clear()
-        #     THRESHOLD = THRESHOLD + STEP
-    print(e)
+        if len(e) < n / 2:
+            e.clear()
+            THRESHOLD = THRESHOLD + STEP
+    # print(e)
     return e
 
 
