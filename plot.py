@@ -186,6 +186,5 @@ def backdoor_baseline():
 
 # poison_baseline()
 
-poison_defense()
+# poison_defense()
 
-pass

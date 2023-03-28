@@ -3,9 +3,9 @@ import torch.nn.functional as F
 
 
 def weights_init(m):
-    if hasattr(m, "weight"):
+    if hasattr(m, "weight") and m.weight is not None:
         m.weight.data.uniform_(-0.5, 0.5)
-    if hasattr(m, "bias"):
+    if hasattr(m, "bias") and m.bias is not None:
         m.bias.data.uniform_(-0.5, 0.5)
 
 
@@ -22,7 +22,7 @@ class LeNet(nn.Module):
             act(),
         )
         self.fc = nn.Sequential(
-            nn.Linear(588, 10)
+            nn.Linear(588, 100)
         )
 
     def forward(self, x):

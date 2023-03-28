@@ -1,27 +1,19 @@
-import json
-import os
 import random
 import time
-from typing import List
 
 import pandas as pd
-import numpy as np
 import torch
-import torch.nn.functional as F
-from sklearn.metrics.pairwise import cosine_similarity
-from itertools import combinations
-from utils import get_clients_indices
-from utils.serialization import save_as_file
-from utils.params import init_parser
-from utils.file_utils import prepare_operation
 
-from poison.client import Client
-from poison.server import Server
 from poison.attack.dataset import build_poisoned_training_sets, build_test_set
+from poison.client import Client
 from poison.defense import get_clean_updates
+from poison.server import Server
+from utils import get_clients_indices
+from utils.file_utils import prepare_operation
+from utils.params import init_parser
+from utils.serialization import save_as_file
 
 LOG_PREFIX = './poison/logs'
-LAYER_NAME = '7.weight'
 
 if __name__ == '__main__':
 
