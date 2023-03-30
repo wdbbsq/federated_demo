@@ -1,36 +1,32 @@
-import json
-import os
 import random
 import time
-from typing import List
-
-import pandas as pd
-import numpy as np
-import torch
-import torch.nn.functional as F
-from sklearn.metrics.pairwise import cosine_similarity
 from itertools import combinations
+
+import numpy as np
+import pandas as pd
+import torch
+from sklearn.metrics.pairwise import cosine_similarity
+
+from backdoor.attack.dataset import build_poisoned_training_sets, build_testset
+from backdoor.client import Client
+from backdoor.defense.clip import clip_clients
+from backdoor.server import Server
 from utils import get_clients_indices
-from utils.serialization import save_as_file
-from utils.params import init_parser
 from utils.file_utils import prepare_operation
 from utils.gradient import get_vector
-
-from backdoor.client import Client
-from backdoor.server import Server
-from backdoor.attack.dataset import build_poisoned_training_sets, build_testset
-# from backdoor.defense.clip import clip_by_norm
+from utils.params import init_parser
+from utils.serialization import save_as_file
 
 LOG_PREFIX = './backdoor/logs'
-LAYER_NAME = '7.weight'
+LAYER_NAME = 'fc.weight'
 
 if __name__ == '__main__':
 
     parser = init_parser('federated backdoor')
 
     # poison settings
-    parser.add_argument('--atack', type=bool, default=False)
-    parser.add_argument('--attack_type', default='central')
+    parser.add_argument('--attack', type=bool, default=False, help='是否进行攻击')
+    parser.add_argument('--attack_type', default='central', help='攻击类型：[central, dba]')
     parser.add_argument('--poisoning_rate', type=float, default=0.5,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
@@ -45,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--attack_epochs', type=list, default=epochs[19:],
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
-    parser.add_argument('--defense', default='None', help='[None, Flex]')
+    parser.add_argument('--defense', type=bool, default='False')
     # other setting
     parser.add_argument('--need_serialization', type=bool, default=False)
 
@@ -53,6 +49,7 @@ if __name__ == '__main__':
 
     args.k_workers = int(args.total_workers * args.global_lr)
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
+
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
     dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
@@ -101,7 +98,7 @@ if __name__ == '__main__':
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 
-        if attack_now:
+        if attack_now and args.defense:
             # 计算余弦相似度
             cos_list = np.zeros([args.k_workers, args.k_workers])
             for i, j in list(combinations(local_updates, 2)):
@@ -113,16 +110,18 @@ if __name__ == '__main__':
             for i in range(args.k_workers):
                 cos_list[i][i] = 1
 
-            save_as_file({
-                'cos_list': cos_list,
-                'client_ids_map': client_ids_map
-            }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
+            if args.need_serialization:
+                save_as_file({
+                    'cos_list': cos_list,
+                    'client_ids_map': client_ids_map
+                }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
 
-        # if args.defense is not None:
-        #     clip_by_norm(server.global_model, LAYER_NAME)
+        if args.defense:
+            clip_clients(server.global_model.state_dict(), local_updates, LAYER_NAME)
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)
+
         status.append({
             'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}

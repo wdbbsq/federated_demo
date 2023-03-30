@@ -16,7 +16,7 @@ def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_c
         # change fc layer
         # the number of classes in our dataset is 10. default is 1000.
         num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, 10)
+        model.fc = nn.Linear(num_ftrs, output_num)
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
     elif name == "densenet121":

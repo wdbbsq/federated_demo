@@ -1,5 +1,7 @@
 import csv
 from typing import List
+
+import numpy as np
 from sklearn.metrics import confusion_matrix
 from pylab import *
 
@@ -54,6 +56,8 @@ def plot_confusion_matrix(conf_matrix):
 def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel, csv_title='', save_pic=False):
     if len(y_data) != len(legends) != len(colors) != len(linestyles):
         raise Exception('params length dont match')
+    # 设置图片大小
+    # plt.figure(figsize=(8, 6))
     x_data = range(1, len(y_data[0]) + 1)
     plt.title(csv_title)
     plt.xlabel(xlabel)
@@ -67,6 +71,30 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
 
     plt.legend()
     plt.show()
+
+
+def backdoor_defense():
+    """
+    后门防护框架性能
+    """
+    labels = ['$\mathrm{ MTA }$', '$\mathrm{ BTA }$']
+    for i in range(2):
+        ydata = get_data(work_dir='backdoor/logs/',
+                         filename='dba.csv', selected_rows=[i + 1]) + \
+                get_data(work_dir='backdoor/logs/',
+                         filename='flex.csv',
+                         selected_rows=[i + 1])
+        ydata = np.asarray(ydata) * 0.01
+        plot(y_data=ydata,
+            csv_title='',
+            legends=[
+                '无防护',
+                '后门消除方法',
+            ],
+            colors=['r', 'b'],
+            linestyles=['-', '-'],
+            xlabel='轮次',
+            ylabel=labels[i])
 
 
 def poison_baseline():
@@ -121,7 +149,7 @@ def poison_defense():
     投毒恶意检测性能
     """
     y_labels = ['准确率', '精确率', '召回率', '$\mathrm{ F_1 }$分数']
-    y_labels = ['准确率',]
+    y_labels = ['准确率', ]
     for i in range(1):
         plot(
             y_data=(
@@ -182,10 +210,10 @@ def backdoor_baseline():
     #      ylabel='准确率')
 
 
-# backdoor_baseline()
+# backdoor_baseline()]
+
+backdoor_defense()
 
 # poison_baseline()
 
-poison_defense()
-
-pass
+# poison_defense()
