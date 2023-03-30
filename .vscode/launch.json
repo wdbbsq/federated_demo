@@ -103,6 +103,21 @@
             "justMyCode": true
         },
         {
+            "name": "Inference",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_inference.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "--global_epochs", "20",
+                "--optimizer", "adam",
+                "--lr", "0.001",
+                "--total_workers", "4",
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "Baseline",
             "type": "python",
             "request": "launch",

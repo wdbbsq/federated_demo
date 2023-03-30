@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from utils.optimizer import get_optimizer
 from inference.models.vision import LeNet
+from poison.model import get_model
 
 
 class Client:
