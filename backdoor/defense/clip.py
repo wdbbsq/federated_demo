@@ -26,15 +26,7 @@ def clip_clients(global_dict, local_updates, layer_name):
 
 
 # LAYER_NAME = '7.weight'
-# device = torch.device('cuda')
-# net = get_model('resnet18', device)
+device = torch.device('cuda')
+net = get_model('badnets', device, input_channels=1, output_num=10)
 # net = init_model('resnet18')
-
-# module = net.fc
-# name = "weight"
-#
-# prune.l1_unstructured(module, name, amount=0.3)
-
-arr = [[0, 1], [2, 2], [4, 3], [8, 4]]
-
-print(np.median(arr, axis=0))
+print(net)
