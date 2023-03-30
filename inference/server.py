@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from tqdm import tqdm
 from inference.models.vision import LeNet
 from utils.serialization import save_as_file
+from poison.model import get_model
 
 
 class Server:
