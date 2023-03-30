@@ -67,6 +67,6 @@ def get_clients_indices(candidates):
     :return: Dict[客户端id 下标]
     """
     indices = dict()
-    for i, candidate in enumerate(candidates):
-        indices[candidate.client_id] = i
+    for i, client_id in enumerate(candidates):
+        indices[client_id] = i
     return indices
