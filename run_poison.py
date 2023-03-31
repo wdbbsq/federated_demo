@@ -53,9 +53,9 @@ if __name__ == '__main__':
     for i in range(args.total_workers):
         clients.append(Client(args, train_datasets, device, i, i in args.adversary_list))
         if i in args.adversary_list:
-            evil_clients.append(clients[i])
+            evil_clients.append(i)
         else:
-            clean_clients.append(clients[i])
+            clean_clients.append(i)
 
     server = Server(args, dataset_val_clean, device)
 
@@ -79,7 +79,8 @@ if __name__ == '__main__':
             weight_accumulator[name] = torch.zeros_like(params)
 
         local_updates = []
-        for c in candidates:
+        for idx in candidates:
+            c = clients[idx]
             local_update = c.local_train(server.global_model, epoch, attack_now)
             if args.defense:
                 local_updates.append({

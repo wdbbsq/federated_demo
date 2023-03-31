@@ -15,16 +15,14 @@ def build_init_data(dataname, download, dataset_path):
 
 def build_poisoned_training_sets(is_train, args):
     transform, detransform = build_transform(args.dataset, is_train=True)
-    # print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
-        # trainset = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
         trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
-                                transform=transform, need_idx=True)
+                                 transform=transform)
         nb_classes = 10
     elif args.dataset == 'MNIST':
         trainset = MNISTPoison(args, args.data_path, train=is_train, download=True,
-                               transform=transform, need_idx=True)
+                               transform=transform)
         nb_classes = 10
     else:
         raise NotImplementedError()
@@ -38,7 +36,6 @@ def build_poisoned_training_sets(is_train, args):
 
 def build_testset(is_train, args):
     transform, detransform = build_transform(args.dataset)
-    # print("Transform = ", transform)
 
     if args.dataset == 'CIFAR10':
         testset_clean = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
