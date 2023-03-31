@@ -20,22 +20,22 @@ if __name__ == '__main__':
     parser = init_parser('federated poison')
 
     # attack settings
-    parser.add_argument('--attack', type=bool, default=False)
+    parser.add_argument('--attack', action='store_true')
 
     parser.add_argument('--poisoning_rate', type=float, default=0.1)
     parser.add_argument('--labels', type=list, default=[1, 9])
 
-    parser.add_argument('--need_scale', type=bool, default=False)
+    parser.add_argument('--need_scale', action='store_true')
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
     epochs = list(range(20))
     parser.add_argument('--attack_epochs', type=list, default=epochs,
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
-    parser.add_argument('--defense', type=bool, default=False)
+    parser.add_argument('--defense', action='store_true')
     parser.add_argument('--defense_method', default='clique', help='[clique, krum, mean]')
 
     # other
-    parser.add_argument('--need_serialization', type=bool, default=False)
+    parser.add_argument('--need_serialization', action='store_true')
     args = parser.parse_args()
 
     args.k_workers = int(args.total_workers * args.global_lr)

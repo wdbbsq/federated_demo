@@ -17,9 +17,9 @@ if __name__ == '__main__':
     parser = init_parser('federated inference')
 
     # attack settings
-    parser.add_argument('--attack', type=bool, default=False)
+    parser.add_argument('--attack', action='store_true')
     # defense settings
-    parser.add_argument('--defense', type=bool, default=False)
+    parser.add_argument('--defense', action='store_true')
     args = parser.parse_args()
 
     args.k_workers = int(args.total_workers * args.global_lr)

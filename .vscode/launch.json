@@ -20,7 +20,7 @@
             "program": "${workspaceFolder}/run_backdoor.py",
             "console": "integratedTerminal",
             "args": [
-                "--need_scale", "True",
+                "--need_scale",
             ],
             "justMyCode": true
         },
@@ -42,13 +42,14 @@
                 "--momentum", "0.0001",
 
                 "--total_workers", "16",
-                // "--local_epochs", "3",
 
-                "--attack", "True",
+                "--attack",
                 "--attack_method", "dba",
-                "--need_scale", "True",
+                "--trigger_size", "6",
+                // "--need_scale",
                 "--weight_scale", "4",
                 "--adversary_num", "4",
+                // "--defense",
             ],
             "justMyCode": true
         },
@@ -71,7 +72,7 @@
 
                 "--total_workers", "4",
 
-                "--need_scale", "True",
+                // "--need_scale",
                 "--weight_scale", "4",
                 "--adversary_num", "0",
             ],
@@ -90,13 +91,13 @@
                 "--lr", "0.001",
                 "--total_workers", "24",
                 
-                "--attack", "True",
+                "--attack",
                 "--poisoning_rate", "0.5",
-                "--need_scale", "False",
+                // "--need_scale",
                 "--weight_scale", "4",
                 "--adversary_num", "9",
 
-                // "--defense", "True",
+                // "--defense",
                 "--defense_method", "clique",
             ],
             "justMyCode": true
