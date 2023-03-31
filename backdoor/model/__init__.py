@@ -10,7 +10,7 @@ from .resnet import build_resnet, ResNetWithOutput
 def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=10):
     if name == "resnet18":
         # model = models.resnet18(pretrained=pretrained)
-        model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        model = models.resnet18(pretrained=pretrained) if torch.__version__ == '1.7.1' else models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
         num_fc = model.fc.in_features
         model.fc = nn.Linear(num_fc, output_num)
 

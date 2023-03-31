@@ -1,7 +1,7 @@
 import numpy as np
 from utils.serialization import read_from_file
 from hdbscan import HDBSCAN
-from backdoor.defense import pca_of_gradients
+from backdoor.defense.pca import pca_of_gradients
 
 GAP = 0.6
 

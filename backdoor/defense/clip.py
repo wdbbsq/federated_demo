@@ -26,7 +26,7 @@ def clip_clients(global_dict, local_updates, layer_name):
 
 
 # LAYER_NAME = '7.weight'
-device = torch.device('cuda')
-net = get_model('badnets', device, input_channels=1, output_num=10)
+# device = torch.device('cuda')
+# net = get_model('badnets', device, input_channels=1, output_num=10)
 # net = init_model('resnet18')
-print(net)
+# print(net)

@@ -25,7 +25,7 @@
             "justMyCode": true
         },
         {
-            "name": "Backdoor cifar",
+            "name": "Backdoor DBA",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/run_backdoor.py",
@@ -41,14 +41,14 @@
                 "--lambda_", "0.1",
                 "--momentum", "0.0001",
 
-                "--total_workers", "20",
+                "--total_workers", "16",
                 // "--local_epochs", "3",
 
                 "--attack", "True",
+                "--attack_method", "dba",
                 "--need_scale", "True",
-                // "--weight_scale", "4",
                 "--weight_scale", "4",
-                "--adversary_num", "2",
+                "--adversary_num", "4",
             ],
             "justMyCode": true
         },
@@ -89,7 +89,6 @@
                 "--optimizer", "adam",
                 "--lr", "0.001",
                 "--total_workers", "24",
-                // "--global_lr", "0.5",
                 
                 "--attack", "True",
                 "--poisoning_rate", "0.5",
