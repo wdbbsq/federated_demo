@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     # poison settings
     parser.add_argument('--attack', type=bool, default=False, help='是否进行攻击')
-    parser.add_argument('--attack_type', default='central', help='攻击类型：[central, dba]')
+    parser.add_argument('--attack_method', default='central', help='攻击类型：[central, dba]')
     parser.add_argument('--poisoning_rate', type=float, default=0.5,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
