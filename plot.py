@@ -73,6 +73,26 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.show()
 
 
+def backdoor_dba():
+    """
+    dba基准
+    """
+    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-03-10-48-37/',
+                          filename='CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv',
+                          selected_rows=[1, 3])
+                 ),
+         csv_title='',
+         legends=[
+             '攻击者比例$\mathrm{ - 0\% }$',
+             '攻击者比例$\mathrm{ - 20\% }$',
+             '攻击者比例$\mathrm{ - 40\% }$',
+         ],
+         colors=['b', 'r', 'r'],
+         linestyles=['-', '-', '--'],
+         xlabel='轮次',
+         ylabel='准确率')
+
+
 def backdoor_defense():
     """
     后门防护框架性能
@@ -212,7 +232,9 @@ def backdoor_baseline():
 
 # backdoor_baseline()]
 
-backdoor_defense()
+# backdoor_defense()
+
+backdoor_dba()
 
 # poison_baseline()
 

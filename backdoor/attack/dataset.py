@@ -34,7 +34,7 @@ def build_poisoned_training_sets(is_train, args):
     return trainset, nb_classes
 
 
-def build_testset(is_train, args):
+def build_test_set(is_train, args):
     transform, detransform = build_transform(args.dataset)
 
     if args.dataset == 'CIFAR10':

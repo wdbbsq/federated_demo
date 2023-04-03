@@ -38,4 +38,12 @@ def init_parser(description):
     parser.add_argument('--adversary_num', type=int, default=1)
     parser.add_argument('--local_epochs', type=int, default=2)
 
+    # 数据分布
+    parser.add_argument('--no_iid', action='store_true')
+    '''
+    使用Dirichlet分布模拟no-iid，
+    https://zhuanlan.zhihu.com/p/468992765
+    '''
+    parser.add_argument('--alpha', type=float, default=0.1)
+
     return parser

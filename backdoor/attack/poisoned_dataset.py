@@ -11,7 +11,7 @@ trigger_loc = [
     [2, 2],  # 左上
     [1, 2],  # 右上
     [2, 1],  # 左下
-    [1, 1]  # 右下
+    [1, 1]   # 右下
 ]
 
 
@@ -75,6 +75,7 @@ class CIFAR10Poison(CIFAR10):
                                                       self.poisoning_rate, args.adversary_list,
                                                       split_trigger=self.split_trigger)
         else:
+            # todo 去掉验证集中目标标签的数据
             self.poi_indices = indices
 
         print(f"Poison {len(self.poi_indices)} over {len(indices)} samples ( poisoning rate {self.poisoning_rate})")

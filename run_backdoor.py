@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 
-from backdoor.attack.dataset import build_poisoned_training_sets, build_testset
+from backdoor.attack.dataset import build_poisoned_training_sets, build_test_set
 from backdoor.client import Client
 from backdoor.defense.clip import clip_clients
 from backdoor.server import Server
@@ -22,7 +22,7 @@ LAYER_NAME = 'fc.weight'
 
 if __name__ == '__main__':
 
-    parser = init_parser('federated yisil')
+    parser = init_parser('federated backdoor')
 
     # poison settings
     parser.add_argument('--attack', action='store_true', help='是否进行攻击')
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
-    dataset_val_clean, dataset_val_poisoned = build_testset(is_train=False, args=args)
+    dataset_val_clean, dataset_val_poisoned = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     args.input_channels = train_datasets.channels
