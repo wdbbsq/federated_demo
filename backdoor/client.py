@@ -13,10 +13,6 @@ class Client:
         self.args = args
         self.device = device
         self.local_epochs = args.local_epochs
-        self.local_model = get_model(args.model_name,
-                                     device,
-                                     input_channels=args.input_channels,
-                                     output_num=args.nb_classes)
         self.client_id = client_id
         self.is_adversary = is_adversary
 
@@ -30,24 +26,28 @@ class Client:
                                        )
 
     def local_train(self, global_model, global_epoch, attack_now=False):
+        local_model = get_model(self.args.model_name,
+                                     self.device,
+                                     input_channels=self.args.input_channels,
+                                     output_num=self.args.nb_classes)
         for name, param in global_model.state_dict().items():
-            self.local_model.state_dict()[name].copy_(param.clone())
-        optimizer = torch.optim.SGD(self.local_model.parameters(),
+            local_model.state_dict()[name].copy_(param.clone())
+        optimizer = torch.optim.SGD(local_model.parameters(),
                                     lr=self.args.lr,
                                     momentum=self.args.momentum)
-        self.local_model.train()
+        local_model.train()
 
         for epoch in range(self.local_epochs):
             for batch_id, (batch_x, batch_y) in enumerate(tqdm(self.train_loader)):
                 batch_x = batch_x.to(self.device, non_blocking=True)
                 batch_y = batch_y.to(self.device, non_blocking=True)
                 optimizer.zero_grad()
-                output = self.local_model(batch_x)
+                output = local_model(batch_x)
                 loss = torch.nn.functional.cross_entropy(output, batch_y)
                 loss.backward()
                 optimizer.step()
         local_update = dict()
-        for name, data in self.local_model.state_dict().items():
+        for name, data in local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
 
         # 缩放客户端更新

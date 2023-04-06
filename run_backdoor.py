@@ -31,14 +31,14 @@ if __name__ == '__main__':
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
-    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_10",
+    parser.add_argument('--trigger_path', default="./backdoor/triggers/trigger_white",
                         help='触发器路径，不含文件扩展名')
     parser.add_argument('--trigger_size', type=int, default=5,
                         help='Trigger Size (int, default: 5)')
     parser.add_argument('--need_scale', action='store_true', help='是否缩放参数')
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
     epochs = list(range(40))
-    parser.add_argument('--attack_epochs', type=list, default=epochs[19:],
+    parser.add_argument('--attack_epochs', type=list, default=epochs[9:],
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', action='store_true', help='是否防御')
@@ -76,7 +76,9 @@ if __name__ == '__main__':
         attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
-            candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
+            # candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
+            candidates = random.sample(evil_clients, 3) + random.sample(clean_clients, args.k_workers - args.adversary_num + 1)
+
         else:
             candidates = random.sample(clean_clients, args.k_workers)
 
