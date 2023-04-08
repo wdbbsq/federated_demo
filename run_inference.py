@@ -24,6 +24,8 @@ if __name__ == '__main__':
 
     args.k_workers = int(args.total_workers * args.global_lr)
 
+    torch.cuda.empty_cache()
+
     # 初始化数据集
     train_dataset, eval_dataset = get_dataset(args.data_path, args.dataset)
 

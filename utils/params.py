@@ -9,20 +9,18 @@ def init_parser(description):
                         help='Which dataset to use (MNIST or CIFAR10, default: MNIST)')
     parser.add_argument('--nb_classes', default=10, type=int,
                         help='number of the classification types')
-    parser.add_argument('--load_local', action='store_true',
-                        help='train model or directly load model (default true, if you add this param, then load '
-                             'trained local model to evaluate the performance)')
     parser.add_argument('--model_name', default='badnets', help='[badnets, resnet18]')
-    parser.add_argument('--loss', default='mse',
-                        help='Which loss function to use (mse or cross, default: mse)')
-    parser.add_argument('--optimizer', default='sgd',
-                        help='Which optimizer to use (sgd or adam, default: sgd)')
-    parser.add_argument('--global_epochs', type=int, default=100,
-                        help='Number of epochs to train backdoor model, default: 100')
-    parser.add_argument('--batch_size', type=int, default=64,
-                        help='Batch size to split dataset, default: 64')
-    parser.add_argument('--test_batch_size', type=int, default=64,
-                        help='Batch size to split dataset, default: 64')
+
+    # 保存模型
+    parser.add_argument('--load_local', action='store_true', help='使用保存的全局模型开始训练')
+    parser.add_argument('--model_path', default='', help='保存的模型路径')
+    parser.add_argument('--start_epoch', type=int, default=0, help='继续训练的全局轮次')
+
+    parser.add_argument('--loss', default='mse')
+    parser.add_argument('--optimizer', default='sgd', help='[sgd, adam]')
+    parser.add_argument('--global_epochs', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--test_batch_size', type=int, default=64)
     parser.add_argument('--num_workers', type=int, default=2, help='')
     parser.add_argument('--data_path', default='~/.torch',
                         help='Place to load dataset (default: ~/.torch)')

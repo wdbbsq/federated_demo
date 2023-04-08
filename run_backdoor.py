@@ -7,9 +7,8 @@ import pandas as pd
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 
-from backdoor.attack.dataset import build_poisoned_training_sets, build_test_set
+from backdoor.attack.dataset import build_training_sets, build_test_set
 from backdoor.client import Client
-from backdoor.defense.clip import clip_clients
 from backdoor.server import Server
 from utils import get_clients_indices
 from utils.file_utils import prepare_operation
@@ -50,18 +49,18 @@ if __name__ == '__main__':
     args.k_workers = int(args.total_workers * args.global_lr)
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
 
-    train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
     # 初始化数据集
+    clean_train_set, poisoned_train_set = build_training_sets(is_train=True, args=args)
     dataset_val_clean, dataset_val_poisoned = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    args.input_channels = train_datasets.channels
+    args.input_channels = poisoned_train_set.channels
 
     clients = []
     clean_clients = []
     evil_clients = []
     for i in range(args.total_workers):
-        clients.append(Client(args, train_datasets, device, i, i in args.adversary_list))
+        clients.append(Client(args, poisoned_train_set, clean_train_set, device, i, i in args.adversary_list))
         if i in args.adversary_list:
             evil_clients.append(i)
         else:
@@ -76,11 +75,14 @@ if __name__ == '__main__':
         attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
-            # candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
-            candidates = random.sample(evil_clients, 3) + random.sample(clean_clients, args.k_workers - args.adversary_num + 1)
+            candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
+            # candidates = random.sample(evil_clients, 3) + random.sample(clean_clients, args.k_workers - args.adversary_num + 1)
 
         else:
-            candidates = random.sample(clean_clients, args.k_workers)
+            # candidates = random.sample(clean_clients, args.k_workers)
+            '''
+            '''
+            candidates = evil_clients
 
         client_ids_map = get_clients_indices(candidates)
 
@@ -119,8 +121,7 @@ if __name__ == '__main__':
                     'client_ids_map': client_ids_map
                 }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
 
-        if args.defense:
-            clip_clients(server.global_model.state_dict(), local_updates, LAYER_NAME)
+            server.apply_defense(LAYER_NAME, local_updates)
 
         server.model_aggregate(weight_accumulator)
         test_status = server.evaluate_badnets(device)

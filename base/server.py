@@ -1,33 +1,21 @@
+from abc import abstractmethod
 import torch
 from torch.utils.data import DataLoader
 
 from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
-from models import get_model
-from backdoor.defense.clip import compute_norms
-from backdoor.client import scale_update
 
 
-class Server:
-    def __init__(self, args, dataset_val_clean, dataset_val_poisoned, device):
+class BaseServer:
+    def __init__(self, args, global_model, dataset_val_clean, dataset_val_poisoned, device):
         self.args = args
-        self.global_model = get_model(args.model_name,
-                                      device,
-                                      input_channels=args.input_channels,
-                                      output_num=args.nb_classes)
+        self.global_model = global_model
         self.loader_val_clean = DataLoader(dataset_val_clean,
                                            batch_size=args.batch_size,
                                            shuffle=True)
         self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
                                               batch_size=args.batch_size,
                                               shuffle=True)
-
-    def apply_defense(self, layer_name, local_updates):
-        norm_list, median_norm = compute_norms(self.global_model.state_dict(),
-                                               local_updates, layer_name)
-        for idx, update in enumerate(local_updates):
-            scale_update(min(1, median_norm / norm_list[idx]), update)
-
 
     def model_aggregate(self, weight_accumulator):
         # for name, sum_update in weight_accumulator.items():
@@ -88,32 +76,9 @@ class Server:
             'bta': bta['acc'], 'asr_loss': bta['loss'],
         }
 
-
-def model_eval(global_model, data_loader, device):
-    # 不启用Batch Normalization和Dropout，
-    # 保证测试过程中，Batch Normalization层的均值和方差不变
-    global_model.eval()
-
-    total_loss = 0.0
-    correct = 0
-    dataset_size = 0
-    with torch.no_grad():
-        for (data, target) in tqdm(data_loader):
-            dataset_size += data.size()[0]
-            data = data.to(device, non_blocking=True)
-            target = target.to(device, non_blocking=True)
-            output = global_model(data)
-            # sum up batch loss
-            total_loss += torch.nn.functional.cross_entropy(output,
-                                                            target,
-                                                            reduction='sum').item()
-            # get the index of the max log-probability
-            pred = output.data.max(1)[1]
-            correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
-    acc = (float(correct) / float(dataset_size))
-    loss = total_loss / dataset_size
-    print(f'\nacc: {acc}, loss: {loss}')
-    return {
-        'acc': acc,
-        'loss': loss
-    }
+    @abstractmethod
+    def apply_defense(self):
+        """
+        进行防御
+        """
+        pass

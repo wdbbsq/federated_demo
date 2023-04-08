@@ -1,4 +1,5 @@
 import numpy
+import torch
 from scipy.spatial import distance
 
 
@@ -9,6 +10,18 @@ def calc_dist(model_dict_a, model_dict_b, layer_name):
 
 def get_vector(model_dict, layer_name):
     return model_dict[layer_name].reshape(1, -1).cpu().numpy()
+
+
+def get_grads(model, loss):
+    """
+    计算模型梯度
+    """
+    grads = list(torch.autograd.grad(loss.mean(),
+                                     [x for x in model.parameters() if
+                                      x.requires_grad],
+                                     retain_graph=True))
+
+    return grads
 
 
 def calculate_model_gradient(model_1, model_2):

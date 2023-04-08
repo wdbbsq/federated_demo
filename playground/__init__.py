@@ -158,7 +158,6 @@ class Client:
 #     y_pred = c.predict(X_test)
 #     print('{:s}:\t{:.2f}'.format(c.name, mean_square_error(y_pred, y_test)))
 
-from utils import init_model
 
 public_key_a, private_key_a = paillier.generate_paillier_keypair()
 public_key_b, private_key_b = paillier.generate_paillier_keypair()
@@ -174,3 +173,5 @@ mm = enc_x + 1
 print(private_key_a.decrypt(mm))
 print(private_key_b.decrypt(enc_y))
 pass
+
+

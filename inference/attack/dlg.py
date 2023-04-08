@@ -50,7 +50,7 @@ gt_onehot_label = label_to_onehot(gt_label)
 plt.imshow(tt(gt_data[0].cpu()))
 
 from inference.models.vision import LeNet, weights_init
-from poison.model import get_model
+from models import get_model
 
 # net = get_model('badnets', device, input_channels=1, output_num=100)
 net = LeNet().to(device)

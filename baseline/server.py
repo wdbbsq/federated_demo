@@ -1,10 +1,10 @@
 import torch
-from utils import init_model
+from models import get_model
 
 class Server:
     def __init__(self, args, eval_dataset):
         self.args = args
-        self.global_model = init_model(self.args.model_name)
+        self.global_model = get_model(self.args.model_name)
         self.eval_loader = torch.utils.data.DataLoader(eval_dataset,
                                                        batch_size=self.args.batch_size,
                                                        shuffle=True)

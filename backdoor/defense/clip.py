@@ -1,10 +1,18 @@
 import torch.nn.utils.prune as prune
 
 import torch
-from backdoor.model import get_model
-from utils import init_model
+from models import get_model
 import numpy as np
 from utils.gradient import calc_dist
+from torch.nn.utils.prune import BasePruningMethod
+
+
+class MyPruning(BasePruningMethod):
+    PRUNING_TYPE = 'unstructured'
+
+    def compute_mask(self, t, default_mask):
+        mask = default_mask.clone()
+        return mask
 
 
 def clip_by_norm(model):
@@ -13,16 +21,18 @@ def clip_by_norm(model):
     """
     # Prune 30% of the weights with the lowest L1-norm
     prune.l1_unstructured(model.fc, 'weight', amount=0.3)
+    prune.custom_from_mask()
 
 
-def clip_clients(global_dict, local_updates, layer_name):
+def compute_norms(global_dict, local_updates, layer_name):
     """
-    遍历并裁剪客户端更新
+    计算与全局模型的L2范数
     """
-    dist = []
+    norm_list = []
     for update in local_updates:
-        dist.append(calc_dist(global_dict, update['local_update'], layer_name))
-    median_dist = np.median(dist)
+        norm_list.append(calc_dist(global_dict, update['local_update'], layer_name))
+    median_l2_norm = np.median(norm_list)
+    return norm_list, median_l2_norm
 
 
 # LAYER_NAME = '7.weight'

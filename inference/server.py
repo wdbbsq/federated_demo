@@ -5,17 +5,17 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from tqdm import tqdm
 from inference.models.vision import LeNet
 from utils.serialization import save_as_file
-from poison.model import get_model
+from models import get_model
 
 
 class Server:
     def __init__(self, args, test_dataset, device):
         self.args = args
-        self.global_model = LeNet().to(device)
-        # self.global_model = get_model(args.model_name,
-        #                               device,
-        #                               input_channels=args.input_channels,
-        #                               output_num=args.nb_classes)
+        # self.global_model = LeNet().to(device)
+        self.global_model = get_model(args.model_name,
+                                      device,
+                                      input_channels=args.input_channels,
+                                      output_num=args.nb_classes)
         self.data_loader = DataLoader(test_dataset,
                                       batch_size=args.batch_size,
                                       shuffle=True)

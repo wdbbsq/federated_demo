@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from tqdm import tqdm
 
-from utils import init_model
+from models import get_model
 
 
 class Client:
@@ -11,7 +11,7 @@ class Client:
     def __init__(self, args, train_dataset, client_id=-1):
         self.args = args
         self.local_epochs = args.local_epochs
-        self.local_model = init_model(args.model_name)
+        self.local_model = get_model(args.model_name)
         self.client_id = client_id
         self.device = args.device
 
