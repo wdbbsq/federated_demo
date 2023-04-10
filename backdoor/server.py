@@ -3,7 +3,9 @@ from torch.utils.data import DataLoader
 
 from sklearn.metrics import accuracy_score, classification_report
 from tqdm import tqdm
-from backdoor.model import get_model
+from models import get_model
+from backdoor.defense.clip import compute_norms
+from backdoor.client import scale_update
 
 
 class Server:
@@ -19,6 +21,13 @@ class Server:
         self.loader_val_poisoned = DataLoader(dataset_val_poisoned,
                                               batch_size=args.batch_size,
                                               shuffle=True)
+
+    def apply_defense(self, layer_name, local_updates):
+        norm_list, median_norm = compute_norms(self.global_model.state_dict(),
+                                               local_updates, layer_name)
+        for idx, update in enumerate(local_updates):
+            scale_update(min(1, median_norm / norm_list[idx]), update)
+
 
     def model_aggregate(self, weight_accumulator):
         # for name, sum_update in weight_accumulator.items():

@@ -52,13 +52,13 @@ if __name__ == '__main__':
     parser.add_argument('--local_epochs', type=int, default=3)
 
     args = parser.parse_args()
-    args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     train_datasets, eval_datasets = get_dataset(args.data_path, args.dataset)
     server = Server(args, eval_datasets)
     clients = []
     for client_id in range(args.total_workers):
-        clients.append(Client(args, train_datasets, client_id))
+        clients.append(Client(args, train_datasets, device, client_id))
 
     status = []
     start_time = time.time()
@@ -71,7 +71,8 @@ if __name__ == '__main__':
             weight_accumulator[name] = torch.zeros_like(params)
 
         for c in candidates:
-            local_update = c.local_train(server.global_model, e)
+            c: Client
+            local_update = c.boot_training(server.global_model, e)
             for name, params in server.global_model.state_dict().items():
                 weight_accumulator[name].add_(local_update[name])
 

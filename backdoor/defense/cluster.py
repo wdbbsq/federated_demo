@@ -54,9 +54,9 @@ def plot_in_2d(labels, x):
     plt.show()
 
 
-def plot_in_3d(labels, x):
-    labels[3] = 0
-    labels[5] = 1
+def plot_in_3d(labels, x, title):
+    # labels[3] = 0
+    # labels[5] = 1
     # Black removed and is used for noise instead.
     colors = ['k', 'r', 'g', 'b', 'c', 'y', 'm']
     fig = plt.figure(figsize=(6, 6))
@@ -67,19 +67,32 @@ def plot_in_3d(labels, x):
         c.append(colors[labels[i] + 1])
     ax.scatter(x[0:, 0], x[0:, 1], x[0:, 2], c=c)
 
-    plt.title('HDBSCAN')
+    plt.title(title)
     plt.show()
 
 
-obj = read_from_file('./backdoor/logs/2023-03-20-14-58-06/29_cos_numpy')
+obj = read_from_file('../logs/2023-03-20-14-58-06/29_cos_numpy')
+# obj = read_from_file('../logs/2023-03-20-22-34-25/25_cos_numpy')
 cos_list = obj['cos_list']
+
 x = pca_of_gradients(cos_list, 3)
 
-hdb = HDBSCAN(min_cluster_size=3, min_samples=1).fit(x)
+# kmeans
+clf = KMeans(n_clusters=2)
+clf.fit(x)  # 分组
+
+centers = clf.cluster_centers_  # 两组数据点的中心点
+labels = clf.labels_  # 每个数据点所属分组
+print(centers)
+print(labels)
+plot_in_3d(labels, x, 'KMeans')
+
+# hdbscan
+hdb = HDBSCAN(min_cluster_size=3).fit(x)
 labels = hdb.labels_
 outliers = hdb.outlier_scores_
+plot_in_3d(labels, x, 'HDBSCAN')
 
-plot_in_3d(labels, x)
 
 # obj = read_from_file('./backdoor/logs/2023-03-20-14-58-06/26_cos_numpy')
 # cos_list = obj['cos_list']

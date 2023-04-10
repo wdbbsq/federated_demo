@@ -4,18 +4,17 @@ import torch.nn.functional as F
 
 from torchvision import models
 from .badnet import BadNet
+from .net import Net
 from .resnet import build_resnet, ResNetWithOutput
 
 
-def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=0, output_num=10):
+def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_channels=1, output_num=10):
     if name == "resnet18":
-        # model = models.resnet18(pretrained=pretrained)
-        model = models.resnet18(pretrained=pretrained) if torch.__version__ == '1.7.1' else models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        model = models.resnet18(pretrained=pretrained) if torch.__version__ == '1.7.1' \
+            else models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
         num_fc = model.fc.in_features
         model.fc = nn.Linear(num_fc, output_num)
-
         # model = build_resnet()
-
     elif name == "resnet50":
         model = models.resnet50(pretrained=pretrained)
     elif name == "densenet121":
@@ -32,7 +31,11 @@ def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_c
         model = models.googlenet(pretrained=pretrained)
     elif name == 'badnets':
         model = BadNet(input_channels, output_num)
-    # print(model)
+    elif name == 'infer_net':
+        model = Net()
+    else:
+        raise NotImplementedError(f'there is no such thing called {name}')
+
     return model.to(device)
 
 

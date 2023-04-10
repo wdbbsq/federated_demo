@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from typing import Dict
-from poison.model import get_model
+from models import get_model
 
 import torch
 import torch.nn.functional as F

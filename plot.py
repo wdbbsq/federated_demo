@@ -73,12 +73,12 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.show()
 
 
-def backdoor_dba():
+def backdoor_dba(work_dir, filename):
     """
     dba基准
     """
-    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-03-10-48-37/',
-                          filename='CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv',
+    plot(y_data=(get_data(work_dir=work_dir,
+                          filename=filename,
                           selected_rows=[1, 3])
                  ),
          csv_title='',
@@ -234,7 +234,14 @@ def backdoor_baseline():
 
 # backdoor_defense()
 
-backdoor_dba()
+# backdoor_dba('backdoor/logs/2023-03-31-16-01-02/',
+#              'CIFAR10_resnet18_16_12_ScaleTrue2_trigger1.csv')
+#
+# backdoor_dba('backdoor/logs/2023-04-03-10-48-37/',
+#              'CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv')
+
+backdoor_dba('backdoor/logs/2023-04-03-14-56-45/',
+             'CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv')
 
 # poison_baseline()
 

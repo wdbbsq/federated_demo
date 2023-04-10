@@ -13,25 +13,22 @@ def build_init_data(dataname, download, dataset_path):
     return train_data, test_data
 
 
-def build_poisoned_training_sets(is_train, args):
-    transform, detransform = build_transform(args.dataset, is_train=True)
+def build_training_sets(is_train, args):
+    transform, de_transform = build_transform(args.dataset, is_train=True)
 
     if args.dataset == 'CIFAR10':
-        trainset = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
-                                 transform=transform)
-        nb_classes = 10
+        clean_training_set = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
+        poisoned_training_set = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
+                                     transform=transform)
     elif args.dataset == 'MNIST':
-        trainset = MNISTPoison(args, args.data_path, train=is_train, download=True,
-                               transform=transform)
-        nb_classes = 10
+        poisoned_training_set = MNISTPoison(args, args.data_path, train=is_train, download=True,
+                                   transform=transform)
     else:
         raise NotImplementedError()
 
-    assert nb_classes == args.nb_classes
-    print("Number of the class = %d" % args.nb_classes)
-    print(trainset)
+    print(poisoned_training_set)
 
-    return trainset, nb_classes
+    return clean_training_set, poisoned_training_set
 
 
 def build_test_set(is_train, args):
@@ -40,16 +37,12 @@ def build_test_set(is_train, args):
     if args.dataset == 'CIFAR10':
         testset_clean = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
         testset_poisoned = CIFAR10Poison(args, args.data_path, train=is_train, download=True, transform=transform)
-        nb_classes = 10
     elif args.dataset == 'MNIST':
         testset_clean = datasets.MNIST(args.data_path, train=is_train, download=True, transform=transform)
         testset_poisoned = MNISTPoison(args, args.data_path, train=is_train, download=True, transform=transform)
-        nb_classes = 10
     else:
         raise NotImplementedError()
 
-    assert nb_classes == args.nb_classes
-    print("Number of the class = %d" % args.nb_classes)
     print(testset_clean, testset_poisoned)
 
     return testset_clean, testset_poisoned

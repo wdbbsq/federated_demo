@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, \
     confusion_matrix
 from tqdm import tqdm
-from poison.model import get_model
+from models import get_model
 from utils.serialization import save_as_file
 
 
