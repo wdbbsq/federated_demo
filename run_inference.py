@@ -36,27 +36,29 @@ if __name__ == '__main__':
     for i in range(args.total_workers):
         clients.append(Client(args, train_dataset, device, i))
 
-    server = Server(args, eval_dataset, device)
+    # select leader client
+    leader_client: Client = random.sample(clients, 1)[0]
+    print(f'leader client: {leader_client.client_id} \n')
+    private_key, public_key, enc_model = leader_client.init_params(eval_dataset)
+    for c in clients:
+        if c.client_id != leader_client.client_id:
+            c.save_secret(private_key, public_key)
+    print(f'prepare phase done \n')
+
+    server = Server(args)
 
     status = []
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
     for epoch in range(args.global_epochs):
         candidates = random.sample(clients, args.k_workers)
 
-        # 客户端上传的模型更新
-        weight_accumulator = dict()
-        for name, params in server.global_model.state_dict().items():
-            weight_accumulator[name] = torch.zeros_like(params)
-
         local_updates = []
         for c in candidates:
-            local_update = c.local_train(server.global_model, epoch)
-            # 累加客户端更新
-            for name, params in server.global_model.state_dict().items():
-                weight_accumulator[name].add_(local_update[name])
+            c: Client
+            local_update = c.boot_training(enc_model, epoch)
 
-        server.model_aggregate(weight_accumulator)
-        test_status = server.eval_model(device, epoch, LOG_PREFIX)
+        enc_model = server.model_aggregate()
+        test_status = leader_client.eval_model(device, epoch, LOG_PREFIX)
         status.append({
             'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}

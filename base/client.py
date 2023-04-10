@@ -24,27 +24,33 @@ class BaseClient:
                                        sampler=SubsetRandomSampler(self.train_indices)
                                        )
 
-    def preparation(self, global_model):
+    def get_local_model(self, global_model):
         """
-        复制全局模型，并初始化优化器
+        复制全局模型
         """
-        local_model = get_model(self.args.model_name,
-                                self.device,
-                                input_channels=self.args.input_channels)
+        local_model = self.get_init_model()
         for name, param in global_model.state_dict().items():
             local_model.state_dict()[name].copy_(param.clone())
+        return local_model
 
-        optimizer = get_optimizer(local_model,
-                                  self.args.lr,
-                                  self.args.momentum,
-                                  self.args.optimizer)
-        return local_model, optimizer
+    def get_init_model(self):
+        """
+        初始化本地模型参数
+        """
+        return get_model(self.args.model_name,
+                         self.device,
+                         input_channels=self.args.input_channels)
 
-    def local_train(self, global_model, global_epoch, attack_now=False):
+    def get_optimizer(self, local_model):
+        return get_optimizer(local_model,
+                             self.args.lr,
+                             self.args.momentum,
+                             self.args.optimizer)
 
-        local_model, optimizer = self.preparation(global_model)
-        local_model.train()
-
+    def local_train(self, local_model, optimizer):
+        """
+        本地训练并返回与全局模型的差值
+        """
         for epoch in range(self.local_epochs):
             for batch_id, (batch_x, batch_y) in enumerate(tqdm(self.train_loader)):
                 batch_x = batch_x.to(self.device, non_blocking=True)
@@ -54,9 +60,23 @@ class BaseClient:
                 loss = torch.nn.functional.cross_entropy(output, batch_y)
                 loss.backward()
                 optimizer.step()
+
+    def calc_update(self, global_model, local_model, global_epoch):
+        """
+        计算模型参数的差异
+        """
         local_update = dict()
         for name, data in local_model.state_dict().items():
             local_update[name] = (data - global_model.state_dict()[name])
 
         print(f'\n # Epoch: {global_epoch} Client {self.client_id} \n')
         return local_update
+
+    def boot_training(self, global_model, global_epoch, attack_now=False):
+        """
+        默认训练流程
+        """
+        local_model = self.get_local_model(global_model)
+        optimizer = self.get_optimizer(local_model)
+        self.local_train(local_model, optimizer)
+        return self.calc_update(global_model, local_model, global_epoch)

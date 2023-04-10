@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 from torchvision import models
 from .badnet import BadNet
+from .net import Net
 from .resnet import build_resnet, ResNetWithOutput
 
 
@@ -30,6 +31,8 @@ def get_model(name="vgg16", device=torch.device('cpu'), pretrained=True, input_c
         model = models.googlenet(pretrained=pretrained)
     elif name == 'badnets':
         model = BadNet(input_channels, output_num)
+    elif name == 'infer_net':
+        model = Net()
     else:
         raise NotImplementedError(f'there is no such thing called {name}')
 
