@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # poison settings
     parser.add_argument('--attack', action='store_true', help='是否进行攻击')
     parser.add_argument('--attack_method', default='central', help='攻击类型：[central, dba]')
-    parser.add_argument('--poisoning_rate', type=float, default=0.5,
+    parser.add_argument('--poisoning_rate', type=float, default=0.1,
                         help='poisoning portion for local client (float, range from 0 to 1, default: 0.1)')
     parser.add_argument('--trigger_label', type=int, default=1,
                         help='The NO. of trigger label (int, range from 0 to 10, default: 0)')
@@ -76,9 +76,10 @@ if __name__ == '__main__':
         attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
+            k = 2
             # candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
-            candidates = random.sample(evil_clients, 3) + random.sample(clean_clients, args.k_workers - args.adversary_num + 1)
-
+            candidates = random.sample(evil_clients, k) + \
+                random.sample(clean_clients, args.k_workers - args.adversary_num + k)
         else:
             candidates = random.sample(clean_clients, args.k_workers)
 
@@ -130,7 +131,7 @@ if __name__ == '__main__':
             **{f'test_{k}': v for k, v in test_status.items()}
         })
         df = pd.DataFrame(status)
-        df.to_csv(f"{LOG_PREFIX}/{args.dataset}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_trigger{args.trigger_label}.csv",
+        df.to_csv(f"{LOG_PREFIX}/{args.attack_method}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_trigger{args.trigger_label}.csv",
                   index=False, encoding='utf-8')
 
     print(f'Finish Training in {time.time() - start_time}\n ')
