@@ -121,7 +121,8 @@ if __name__ == '__main__':
             server.apply_defense(LAYER_NAME, local_updates)
 
         server.model_aggregate(weight_accumulator)
-        test_status = server.evaluate_backdoor(device, epoch, LOG_PREFIX)
+        test_status = server.evaluate_backdoor(device, epoch, LOG_PREFIX) if args.attack else \
+            server.eval_model(server.eval_dataloader, device, epoch, LOG_PREFIX)
 
         status.append({
             'epoch': epoch,

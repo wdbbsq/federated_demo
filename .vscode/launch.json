@@ -43,7 +43,7 @@
 
                 "--total_workers", "16",
 
-                "--attack",
+                // "--attack",
                 "--attack_method", "dba",
                 "--trigger_size", "6",
                 "--trigger_path", "./backdoor/triggers/trigger_10",

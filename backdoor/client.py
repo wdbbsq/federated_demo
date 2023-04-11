@@ -28,7 +28,6 @@ class Client(BaseClient):
         # 缩放客户端更新
         if self.is_adversary and self.args.need_scale and attack_now:
             scale_update(self.args.weight_scale, local_update)
-        print(f'# Epoch: {global_epoch} / Client {self.client_id} done. \n')
 
         return local_update
 

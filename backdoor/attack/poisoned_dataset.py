@@ -60,7 +60,7 @@ class CIFAR10Poison(CIFAR10):
 
         self.width, self.height, self.channels = self.__shape_info__()
         # 只有训练集才分裂触发器
-        self.split_trigger = train and args.attack_method == 'dba'
+        self.split_trigger = train and args.attack and args.attack_method == 'dba'
         if self.split_trigger and args.trigger_size % 2 != 0:
             raise AttributeError('触发器大小需要是偶数')
         self.trigger_handler = TriggerHandler(args.trigger_path, args.trigger_size,
