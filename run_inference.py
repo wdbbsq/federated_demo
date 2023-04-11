@@ -39,10 +39,10 @@ if __name__ == '__main__':
     # select leader client
     leader_client: Client = random.sample(clients, 1)[0]
     print(f'leader client: {leader_client.client_id} \n')
-    private_key, public_key, enc_model = leader_client.init_params(eval_dataset)
+    private_key, public_key, enc_model, model_shape = leader_client.init_params(eval_dataset)
     for c in clients:
         if c.client_id != leader_client.client_id:
-            c.save_secret(private_key, public_key)
+            c.save_secret(private_key, public_key, model_shape)
     print(f'prepare phase done \n')
 
     server = Server(args)
@@ -56,6 +56,7 @@ if __name__ == '__main__':
         for c in candidates:
             c: Client
             local_update = c.boot_training(enc_model, epoch)
+            server.accumulate_update(local_update)
 
         enc_model = server.model_aggregate()
         test_status = leader_client.eval_model(device, epoch, LOG_PREFIX)

@@ -38,8 +38,8 @@ class BaseServer:
                 data.add_(update_per_layer)
 
     def eval_model(self, device, global_epoch, file_path):
-        model_evaluation(self.global_model, self.eval_dataloader, device, file_path,
-                         global_epoch == self.args.global_epochs - 1)
+        return model_evaluation(self.global_model, self.eval_dataloader, device, file_path,
+                                global_epoch == self.args.global_epochs - 1)
 
     def evaluate_badnets(self, device):
         mta = self.eval(self.loader_val_clean, self.global_model, device, print_perform=True)

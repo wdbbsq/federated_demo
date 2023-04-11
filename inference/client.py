@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 
 import numpy as np
 import phe as paillier
@@ -16,11 +17,12 @@ from utils.serialization import save_as_file
 
 class Client(BaseClient):
     def __init__(self, args, train_dataset, device, client_id=-1, is_adversary=False):
-        super().__init__(args, train_dataset, device, client_id, is_adversary)
+        super(Client, self).__init__(args, train_dataset, device, client_id, is_adversary)
         self.private_key = None
         self.public_key = None
         self.model_shape = dict()
         self.eval_dataloader = None
+        # 用于验证全局模型的性能
         self.global_model = None
         self.is_leader = False
 
@@ -39,11 +41,15 @@ class Client(BaseClient):
                                  output_num=self.args.nb_classes)
         self.save_model_shape(global_model)
         enc_param = self.encrypt_model(global_model)
-        return self.private_key, self.public_key, enc_param
+        return self.private_key, self.public_key, enc_param, self.model_shape
 
-    def save_secret(self, private_key, public_key):
+    def save_secret(self, private_key, public_key, model_shape):
+        """
+        非领导节点执行 保存密钥以及模型结构
+        """
         self.private_key = private_key
         self.public_key = public_key
+        self.model_shape = deepcopy(model_shape)
 
     def save_model_shape(self, model):
         for name, data in model.state_dict().items():
@@ -57,8 +63,9 @@ class Client(BaseClient):
             params = data.cpu().numpy()
             enc_list = []
             for x in np.nditer(params):
-                x = float(x)
-                enc_list.append(self.public_key.encrypt(x))
+                # 不防御就不加密
+                x = self.public_key.encrypt(float(x)) if self.args.defense else x
+                enc_list.append(x)
             enc_dict[name] = enc_list
         t2 = time.time()
         print(f'Enc params in {t2 - t1}')
@@ -73,12 +80,15 @@ class Client(BaseClient):
         for name, data in init_model.state_dict().items():
             dec_list = []
             for x in global_model[name]:
-                dec_list.append(self.private_key.decrypt(x))
+                x = self.private_key.decrypt(x) if self.args.defense else x
+                dec_list.append(x)
             # reshape vector
-            dec_params = np.asarray(dec_list).reshape(self.model_shape[name])
-            init_model.state_dict()[name].copy_(dec_params.clone())
+            dec_params = np.asarray(dec_list, dtype=np.float32).reshape(self.model_shape[name])
+            # cover model params
+            init_model.state_dict()[name].copy_(torch.from_numpy(dec_params))
         t2 = time.time()
         print(f'Dec params in {t2 - t1} \n')
+        # 领导客户端每次训练都会保存全局模型用于评估
         if self.is_leader:
             del self.global_model
             self.global_model = init_model
@@ -91,6 +101,6 @@ class Client(BaseClient):
         return self.encrypt_model(local_model)
 
     def eval_model(self, device, global_epoch, file_path):
-        model_evaluation(self.global_model, self.eval_dataloader, device, file_path,
-                         global_epoch == self.args.global_epochs - 1)
+        return model_evaluation(self.global_model, self.eval_dataloader, device, file_path,
+                                global_epoch == self.args.global_epochs - 1)
 

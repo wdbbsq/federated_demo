@@ -79,4 +79,5 @@ class BaseClient:
         local_model = self.get_local_model(global_model)
         optimizer = self.get_optimizer(local_model)
         self.local_train(local_model, optimizer)
+        print(f'Client {self.client_id} in epoch {global_epoch} \n')
         return self.calc_update(global_model, local_model, global_epoch)

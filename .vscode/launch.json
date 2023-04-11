@@ -113,12 +113,13 @@
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "args": [
+                "--defense",
                 "--model_name", "infer_net",
                 "--global_epochs", "20",
                 "--optimizer", "adam",
                 "--lr", "0.001",
-                "--total_workers", "4",
-                "--global_lr", "0.5",
+                "--total_workers", "2",
+                "--global_lr", "1",
             ],
             "justMyCode": true
         },
