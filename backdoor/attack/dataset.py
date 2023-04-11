@@ -21,6 +21,7 @@ def build_training_sets(is_train, args):
         poisoned_training_set = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
                                      transform=transform)
     elif args.dataset == 'MNIST':
+        clean_training_set = datasets.MNIST(args.data_path, train=is_train, download=True, transform=transform)
         poisoned_training_set = MNISTPoison(args, args.data_path, train=is_train, download=True,
                                    transform=transform)
     else:
