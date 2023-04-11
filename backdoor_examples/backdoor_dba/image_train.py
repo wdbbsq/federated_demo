@@ -1,8 +1,6 @@
 import utils.csv_record as csv_record
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import time
 import main
 import test
 import copy
@@ -91,7 +89,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                         loss.backward()
 
                         # get gradients
-                        if helper.params['aggregation_methods']==config.AGGR_FOOLSGOLD:
+                        if helper.params['aggregation_methods']== config.AGGR_FOOLSGOLD:
                             for i, (name, params) in enumerate(model.named_parameters()):
                                 if params.requires_grad:
                                     if internal_epoch == 1 and batch_id == 0:
@@ -111,9 +109,9 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                             dis2global_list.append(distance_to_global_model)
                             model.track_distance_batch_vis(vis=main.vis, epoch=temp_local_epoch,
                                                            data_len=temp_data_len,
-                                                            batch=batch_id,distance_to_global_model= distance_to_global_model,
+                                                           batch=batch_id, distance_to_global_model= distance_to_global_model,
                                                            eid=helper.params['environment_name'],
-                                                           name=str(agent_name_key),is_poisoned=True)
+                                                           name=str(agent_name_key), is_poisoned=True)
 
                     if step_lr:
                         scheduler.step()
@@ -133,7 +131,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                     if helper.params['vis_train']:
                         model.train_vis(main.vis, temp_local_epoch,
                                         acc, loss=total_l, eid=helper.params['environment_name'], is_poisoned=True,
-                                        name=str(agent_name_key) )
+                                        name=str(agent_name_key))
                     num_samples_dict[agent_name_key] = dataset_size
                     if helper.params["batch_track_distance"]:
                         main.logger.info(
@@ -231,7 +229,7 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                                                   batch=batch_id,
                                                   loss=cur_loss,
                                                   eid=helper.params['environment_name'],
-                                                  name=str(agent_name_key) , win='train_batch_loss', is_poisoned=False)
+                                                  name=str(agent_name_key), win='train_batch_loss', is_poisoned=False)
                         if helper.params["batch_track_distance"]:
                             # we can calculate distance to this model now
                             temp_data_len = len(data_iterator)
@@ -239,9 +237,9 @@ def ImageTrain(helper, start_epoch, local_model, target_model, is_poison,agent_n
                             dis2global_list.append(distance_to_global_model)
                             model.track_distance_batch_vis(vis=main.vis, epoch=temp_local_epoch,
                                                            data_len=temp_data_len,
-                                                            batch=batch_id,distance_to_global_model= distance_to_global_model,
+                                                           batch=batch_id, distance_to_global_model= distance_to_global_model,
                                                            eid=helper.params['environment_name'],
-                                                           name=str(agent_name_key),is_poisoned=False)
+                                                           name=str(agent_name_key), is_poisoned=False)
 
                     acc = 100.0 * (float(correct) / float(dataset_size))
                     total_l = total_loss / dataset_size

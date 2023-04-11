@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import time
 import os
 import numpy as np
@@ -7,7 +6,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
+import pickle
 import PIL.Image as Image
+
 
 class LeNet(nn.Module):
     def __init__(self, channel=3, hideen=768, num_classes=10):
@@ -47,8 +48,8 @@ def weights_init(m):
 
 class Dataset_from_Image(Dataset):
     def __init__(self, imgs, labs, transform=None):
-        self.imgs = imgs # img paths
-        self.labs = labs # labs is ndarray
+        self.imgs = imgs  # img paths
+        self.labs = labs  # labs is ndarray
         self.transform = transform
         del imgs, labs
 
@@ -81,16 +82,15 @@ def lfw_dataset(lfw_path, shape_img):
 
 
 def main():
-    dataset = 'cifar100'
-    data_path = '~/.torch'
-    # on linux, dataset/lfw-deepfunneled
-    lfw_path = os.path.join(os.path.abspath('../../'), 'dataset/lfw-deepfunneled')
-    save_path = 'results/iDLG_%s'%dataset
-    
+    dataset = 'lfw'
+    root_path = ''
+    data_path = os.path.join(root_path, '../../data').replace('\\', '/')
+    save_path = os.path.join(root_path, 'results/iDLG_%s' % dataset).replace('\\', '/')
+
     lr = 1.0
     num_dummy = 1
-    Iteration = 100
-    num_exp = 1
+    Iteration = 300
+    num_exp = 1000
 
     use_cuda = torch.cuda.is_available()
     device = 'cuda' if use_cuda else 'cpu'
@@ -98,18 +98,14 @@ def main():
     tt = transforms.Compose([transforms.ToTensor()])
     tp = transforms.Compose([transforms.ToPILImage()])
 
-    print('dataset:', dataset)
-    print('data_path:', data_path)
-    print('lfw_path:', lfw_path)
-    print('save_path:', save_path)
-    
+    print(dataset, 'root_path:', root_path)
+    print(dataset, 'data_path:', data_path)
+    print(dataset, 'save_path:', save_path)
+
     if not os.path.exists('results'):
         os.mkdir('results')
     if not os.path.exists(save_path):
         os.mkdir(save_path)
-    if not os.path.exists(lfw_path):
-       print('not found lfw dataset')
-
 
     ''' load data '''
     if dataset == 'MNIST':
@@ -117,14 +113,14 @@ def main():
         num_classes = 10
         channel = 1
         hidden = 588
-        dst = datasets.MNIST(data_path, download=True)
+        dst = datasets.MNIST(data_path, download=False)
 
     elif dataset == 'cifar100':
         shape_img = (32, 32)
         num_classes = 100
         channel = 3
         hidden = 768
-        dst = datasets.CIFAR100(data_path, download=True)
+        dst = datasets.CIFAR100(data_path, download=False)
 
 
     elif dataset == 'lfw':
@@ -132,18 +128,18 @@ def main():
         num_classes = 5749
         channel = 3
         hidden = 768
+        lfw_path = os.path.join(root_path, '../data/lfw')
         dst = lfw_dataset(lfw_path, shape_img)
 
     else:
         exit('unknown dataset')
-
 
     ''' train DLG and iDLG '''
     for idx_net in range(num_exp):
         net = LeNet(channel=channel, hideen=hidden, num_classes=num_classes)
         net.apply(weights_init)
 
-        print('running %d|%d experiment'%(idx_net, num_exp))
+        print('running %d|%d experiment' % (idx_net, num_exp))
         net = net.to(device)
         idx_shuffle = np.random.permutation(len(dst))
 
@@ -167,7 +163,6 @@ def main():
                     gt_data = torch.cat((gt_data, tmp_datum), dim=0)
                     gt_label = torch.cat((gt_label, tmp_label), dim=0)
 
-
             # compute original gradient
             out = net(gt_data)
             y = criterion(out, gt_label)
@@ -183,7 +178,8 @@ def main():
             elif method == 'iDLG':
                 optimizer = torch.optim.LBFGS([dummy_data, ], lr=lr)
                 # predict the ground-truth label
-                label_pred = torch.argmin(torch.sum(original_dy_dx[-2], dim=-1), dim=-1).detach().reshape((1,)).requires_grad_(False)
+                label_pred = torch.argmin(torch.sum(original_dy_dx[-2], dim=-1), dim=-1).detach().reshape(
+                    (1,)).requires_grad_(False)
 
             history = []
             history_iters = []
@@ -191,13 +187,15 @@ def main():
             mses = []
             train_iters = []
 
+            print('lr =', lr)
             for iters in range(Iteration):
 
                 def closure():
                     optimizer.zero_grad()
                     pred = net(dummy_data)
                     if method == 'DLG':
-                        dummy_loss = - torch.mean(torch.sum(torch.softmax(dummy_label, -1) * torch.log(torch.softmax(pred, -1)), dim=-1))
+                        dummy_loss = - torch.mean(
+                            torch.sum(torch.softmax(dummy_label, -1) * torch.log(torch.softmax(pred, -1)), dim=-1))
                         # dummy_loss = criterion(pred, gt_label)
                     elif method == 'iDLG':
                         dummy_loss = criterion(pred, label_pred)
@@ -214,11 +212,11 @@ def main():
                 current_loss = closure().item()
                 train_iters.append(iters)
                 losses.append(current_loss)
-                mses.append(torch.mean((dummy_data-gt_data)**2).item())
+                mses.append(torch.mean((dummy_data - gt_data) ** 2).item())
 
                 if iters % int(Iteration / 30) == 0:
                     current_time = str(time.strftime("[%Y-%m-%d %H:%M:%S]", time.localtime()))
-                    print(current_time, iters, 'loss = %.8f, mse = %.8f' %(current_loss, mses[-1]))
+                    print(current_time, iters, 'loss = %.8f, mse = %.8f' % (current_loss, mses[-1]))
                     history.append([tp(dummy_data[imidx].cpu()) for imidx in range(num_dummy)])
                     history_iters.append(iters)
 
@@ -238,7 +236,7 @@ def main():
                             plt.savefig('%s/iDLG_on_%s_%05d.png' % (save_path, imidx_list, imidx_list[imidx]))
                             plt.close()
 
-                    if current_loss < 0.000001: # converge
+                    if current_loss < 0.000001:  # converge
                         break
 
             if method == 'DLG':
@@ -256,6 +254,7 @@ def main():
         print('gt_label:', gt_label.detach().cpu().data.numpy(), 'lab_DLG:', label_DLG, 'lab_iDLG:', label_iDLG)
 
         print('----------------------\n\n')
+
 
 if __name__ == '__main__':
     main()

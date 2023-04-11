@@ -84,7 +84,7 @@ class Client(BaseClient):
             self.global_model = init_model
         return init_model
 
-    def calc_update(self, global_model, local_model, global_epoch):
+    def calc_update(self, global_model, local_model, global_epoch, attack_now):
         """
         重写父类方法，加密本地更新
         """

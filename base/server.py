@@ -37,16 +37,9 @@ class BaseServer:
             else:
                 data.add_(update_per_layer)
 
-    def eval_model(self, device, global_epoch, file_path):
-        model_evaluation(self.global_model, self.eval_dataloader, device, file_path,
-                         global_epoch == self.args.global_epochs - 1)
-
-    def evaluate_badnets(self, device):
-        mta = self.eval(self.loader_val_clean, self.global_model, device, print_perform=True)
-        bta = self.eval(self.loader_val_poisoned, self.global_model, device, print_perform=False)
-        # mta = model_eval(self.global_model, self.loader_val_clean, device)
-        # bta = model_eval(self.global_model, self.loader_val_poisoned, device)
-        return {
-            'clean_acc': mta['acc'], 'clean_loss': mta['loss'],
-            'bta': bta['acc'], 'asr_loss': bta['loss'],
-        }
+    def eval_model(self, data_loader, device, epoch, file_path):
+        """
+        测试模型性能并返回评估值
+        """
+        return model_evaluation(self.global_model, data_loader, device, file_path,
+                                epoch == self.args.global_epochs - 1)

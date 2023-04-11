@@ -63,14 +63,14 @@ if __name__ == '__main__':
                'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     print('ok')
 
-    # 训练集
-    triggers = [2840, 4697, 7376, 11974]
-    train_img = torch.stack([train_set.__getitem__(i)[0] for i in triggers])
-    imshow(torchvision.utils.make_grid(train_img))
     # 测试集
     dataiter = iter(test_loader)
     images, labels = dataiter.next()
     print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
     imshow(torchvision.utils.make_grid(images))
 
+    # 训练集
+    triggers = [2840, 4697, 7376, 11974]
+    train_img = torch.stack([train_set.__getitem__(i)[0] for i in triggers])
+    imshow(torchvision.utils.make_grid(train_img))
 

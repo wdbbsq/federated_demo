@@ -17,11 +17,11 @@ Table 1: Accuracy of the extracted labels for DLG [1] and iDLG. Note that iDLG a
 label as opposed to DLG which extracts wrong labels frequently.
 
 <br><br>
-<div align=center><img src="./Figure1.png" alt=""/></div>
+<div align=center><img src="Figure1.png" alt=""/></div>
 
 
 <br><br>
-<div align=center><img src="./Figure2.png" alt=""/></div>
+<div align=center><img src="Figure2.png" alt=""/></div>
 <br><br>
 
 ## Cite <br>

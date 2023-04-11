@@ -8,6 +8,7 @@ from backdoor.defense.pca import pca_of_gradients
 from sklearn.preprocessing import StandardScaler
 
 from utils.serialization import read_from_file
+from utils.gradient import calc_vector_dist
 
 
 def kmeans():
@@ -39,7 +40,7 @@ def plot_cluster():
     kmeans()
 
 
-def plot_in_2d(labels, x):
+def plot_in_2d(labels, x, title):
     # Black removed and is used for noise instead.
     unique_labels = set(labels)
     colors = ['r', 'g', 'b', 'c', 'y', 'm', 'k']
@@ -50,7 +51,7 @@ def plot_in_2d(labels, x):
             col = 'k'
         plt.plot(x[labels == k, 0], x[labels == k, 1], 'o', markerfacecolor=col,
                  markeredgecolor='k', markersize=6)
-    plt.title('HDBSCAN')
+    plt.title(title)
     plt.show()
 
 
@@ -71,27 +72,34 @@ def plot_in_3d(labels, x, title):
     plt.show()
 
 
-obj = read_from_file('../logs/2023-03-20-14-58-06/29_cos_numpy')
-# obj = read_from_file('../logs/2023-03-20-22-34-25/25_cos_numpy')
+# clean
+# obj = read_from_file('../logs/2023-03-20-14-58-06/7_cos_numpy')
+# backdoor
+# obj = read_from_file('../logs/2023-03-20-14-58-06/29_cos_numpy')
+obj = read_from_file('../logs/2023-03-20-22-34-25/25_cos_numpy')
 cos_list = obj['cos_list']
 
-x = pca_of_gradients(cos_list, 3)
+x = pca_of_gradients(cos_list, 2)
 
 # kmeans
 clf = KMeans(n_clusters=2)
 clf.fit(x)  # 分组
+print(calc_vector_dist(clf.cluster_centers_[0].reshape(1, -1),
+                       clf.cluster_centers_[1].reshape(1, -1)))
 
 centers = clf.cluster_centers_  # 两组数据点的中心点
 labels = clf.labels_  # 每个数据点所属分组
 print(centers)
 print(labels)
-plot_in_3d(labels, x, 'KMeans')
+plot_in_2d(labels, x, 'KMeans')
+# plot_in_3d(labels, x, 'KMeans')
 
 # hdbscan
 hdb = HDBSCAN(min_cluster_size=3).fit(x)
 labels = hdb.labels_
 outliers = hdb.outlier_scores_
-plot_in_3d(labels, x, 'HDBSCAN')
+plot_in_2d(labels, x, 'DBSCAN')
+# plot_in_3d(labels, x, 'DBSCAN')
 
 
 # obj = read_from_file('./backdoor/logs/2023-03-20-14-58-06/26_cos_numpy')

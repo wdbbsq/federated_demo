@@ -47,7 +47,7 @@ if args.deterministic:
 
 if __name__ == "__main__":
     # Choose GPU device and print status information:
-    setup = inversefed.utils.system_startup(args)
+    setup = inference_examples.inference_cpl.GradInverting.inversefed.utils.system_startup(args)
     start_time = time.time()
 
     # Prepare for training
@@ -192,10 +192,10 @@ if __name__ == "__main__":
             local_gradient_steps = args.accumulation
             local_lr = args.local_lr
             batch_size = args.batch_size
-            input_parameters = inversefed.reconstruction_algorithms.loss_steps(model, ground_truth,
-                                                                               labels,
-                                                                               lr=local_lr,
-                                                                               local_steps=local_gradient_steps, use_updates=True, batch_size=batch_size)
+            input_parameters = inference_examples.inference_cpl.GradInverting.inversefed.reconstruction_algorithms.loss_steps(model, ground_truth,
+                                                                                                                              labels,
+                                                                                                                              lr=local_lr,
+                                                                                                                              local_steps=local_gradient_steps, use_updates=True, batch_size=batch_size)
             input_parameters = [p.detach() for p in input_parameters]
 
             # Run reconstruction in different precision?
@@ -227,36 +227,36 @@ if __name__ == "__main__":
         ground_truth_den = torch.clamp(ground_truth * ds + dm, 0, 1)
         feat_mse = (model(output) - model(ground_truth)).pow(2).mean().item()
         test_mse = (output_den - ground_truth_den).pow(2).mean().item()
-        test_psnr = inversefed.metrics.psnr(output_den, ground_truth_den, factor=1)
+        test_psnr = inference_examples.inference_cpl.GradInverting.inversefed.metrics.psnr(output_den, ground_truth_den, factor=1)
         print(f"Rec. loss: {stats['opt']:2.4f} | MSE: {test_mse:2.4f} | PSNR: {test_psnr:4.2f} | FMSE: {feat_mse:2.4e} |")
 
-        inversefed.utils.save_to_table(f'results/{config_hash}', name=f'mul_exp_{args.name}', dryrun=args.dryrun,
+        inference_examples.inference_cpl.GradInverting.inversefed.utils.save_to_table(f'results/{config_hash}', name=f'mul_exp_{args.name}', dryrun=args.dryrun,
 
-                                       config_hash=config_hash,
-                                       model=args.model,
-                                       dataset=args.dataset,
-                                       trained=args.trained_model,
-                                       accumulation=args.accumulation,
-                                       restarts=args.restarts,
-                                       OPTIM=args.optim,
-                                       cost_fn=args.cost_fn,
-                                       indices=args.indices,
-                                       weights=args.weights,
-                                       scoring=args.scoring_choice,
-                                       init=args.init,
-                                       tv=args.tv,
+                                                                                      config_hash=config_hash,
+                                                                                      model=args.model,
+                                                                                      dataset=args.dataset,
+                                                                                      trained=args.trained_model,
+                                                                                      accumulation=args.accumulation,
+                                                                                      restarts=args.restarts,
+                                                                                      OPTIM=args.optim,
+                                                                                      cost_fn=args.cost_fn,
+                                                                                      indices=args.indices,
+                                                                                      weights=args.weights,
+                                                                                      scoring=args.scoring_choice,
+                                                                                      init=args.init,
+                                                                                      tv=args.tv,
 
-                                       rec_loss=stats["opt"],
-                                       psnr=test_psnr,
-                                       test_mse=test_mse,
-                                       feat_mse=feat_mse,
+                                                                                      rec_loss=stats["opt"],
+                                                                                      psnr=test_psnr,
+                                                                                      test_mse=test_mse,
+                                                                                      feat_mse=feat_mse,
 
-                                       target_id=target_id,
-                                       seed=model_seed,
-                                       dtype=setup['dtype'],
-                                       epochs=defs.epochs,
-                                       val_acc=training_stats["valid_" + name][-1],
-                                       )
+                                                                                      target_id=target_id,
+                                                                                      seed=model_seed,
+                                                                                      dtype=setup['dtype'],
+                                                                                      epochs=defs.epochs,
+                                                                                      val_acc=training_stats["valid_" + name][-1],
+                                                                                      )
 
 
         # Save the resulting image
@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
         # Save psnr values
         psnrs.append(test_psnr)
-        inversefed.utils.save_to_table(f'results/{config_hash}', name='psnrs', dryrun=args.dryrun, target_id=target_id, psnr=test_psnr)
+        inference_examples.inference_cpl.GradInverting.inversefed.utils.save_to_table(f'results/{config_hash}', name='psnrs', dryrun=args.dryrun, target_id=target_id, psnr=test_psnr)
 
         # Update target id
         target_id = target_id_
@@ -284,14 +284,14 @@ if __name__ == "__main__":
     psnr_min = psnrs.min()
     psnr_median = np.median(psnrs)
     timing = datetime.timedelta(seconds=time.time() - start_time)
-    inversefed.utils.save_to_table(f'results/{config_hash}', name='psnr_stats', dryrun=args.dryrun,
-                                   number_of_samples=len(psnrs),
-                                   timing=str(timing),
-                                   mean=psnr_mean,
-                                   std=psnr_std,
-                                   max=psnr_max,
-                                   min=psnr_min,
-                                   median=psnr_median)
+    inference_examples.inference_cpl.GradInverting.inversefed.utils.save_to_table(f'results/{config_hash}', name='psnr_stats', dryrun=args.dryrun,
+                                                                                  number_of_samples=len(psnrs),
+                                                                                  timing=str(timing),
+                                                                                  mean=psnr_mean,
+                                                                                  std=psnr_std,
+                                                                                  max=psnr_max,
+                                                                                  min=psnr_min,
+                                                                                  median=psnr_median)
 
     config_exists = False
     if os.path.isfile('results/table_configs.csv'):
@@ -303,16 +303,16 @@ if __name__ == "__main__":
                     break
 
     if not config_exists:
-        inversefed.utils.save_to_table('results', name='configs', dryrun=args.dryrun,
-                                       config_hash=config_hash,
-                                       **config_comp,
-                                       number_of_samples=len(psnrs),
-                                       timing=str(timing),
-                                       mean=psnr_mean,
-                                       std=psnr_std,
-                                       max=psnr_max,
-                                       min=psnr_min,
-                                       median=psnr_median)
+        inference_examples.inference_cpl.GradInverting.inversefed.utils.save_to_table('results', name='configs', dryrun=args.dryrun,
+                                                                                      config_hash=config_hash,
+                                                                                      **config_comp,
+                                                                                      number_of_samples=len(psnrs),
+                                                                                      timing=str(timing),
+                                                                                      mean=psnr_mean,
+                                                                                      std=psnr_std,
+                                                                                      max=psnr_max,
+                                                                                      min=psnr_min,
+                                                                                      median=psnr_median)
 
     # Print final timestamp
     print(datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p"))

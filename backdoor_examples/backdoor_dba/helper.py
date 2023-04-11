@@ -16,7 +16,7 @@ import json
 import numpy as np
 import config
 import copy
-import utils.csv_record
+
 
 class Helper:
     def __init__(self, current_time, params, name):
@@ -289,7 +289,7 @@ class Helper:
                 params.grad = agg_grads[i].to(config.device)
         optimizer.step()
         wv=wv.tolist()
-        utils.csv_record.add_weight_result(names, wv, alpha)
+        backdoor_examples.backdoor_dba.utils.csv_record.add_weight_result(names, wv, alpha)
         return True, names, wv, alpha
 
     def geometric_median_update(self, target_model, updates, maxiter=4, eps=1e-5, verbose=False, ftol=1e-6, max_update_norm= None):
@@ -368,7 +368,7 @@ class Helper:
             logger.info('\t\t\tUpdate norm = {} is too large. Update rejected'.format(update_norm))
             is_updated = False
 
-        utils.csv_record.add_weight_result(names, wv.cpu().numpy().tolist(), alphas)
+        backdoor_examples.backdoor_dba.utils.csv_record.add_weight_result(names, wv.cpu().numpy().tolist(), alphas)
 
         return num_oracle_calls, is_updated, names, wv.cpu().numpy().tolist(),alphas
 

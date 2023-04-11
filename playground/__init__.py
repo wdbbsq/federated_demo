@@ -2,7 +2,7 @@ import numpy as np
 
 from models import get_model
 
-import phe as paillier
+# import phe as paillier
 
 # seed = 42
 # np.random.seed(seed)
@@ -159,22 +159,24 @@ import phe as paillier
 #     print('{:s}:\t{:.2f}'.format(c.name, mean_square_error(y_pred, y_test)))
 
 
-# net = get_model('infer_net')
-# model_dict = dict()
-# # 加密参数
-# for name, data in net.state_dict().items():
-#     datalist = data.cpu().numpy()
-#     # for x in np.nditer(datalist):
-#     #     # print(type(x.data))
-#     #     x = float(x)
-#     #     print(x)
-# pass
+net = get_model('infer_net')
+model_dict = dict()
+# 加密参数
+for name, data in net.state_dict().items():
+    datalist = data.cpu().numpy()
+    model_dict[name] = datalist.shape
+    # for x in np.nditer(datalist):
+    #     # print(type(x.data))
+    #     x = float(x)
+    #     print(x)
+print(model_dict)
+pass
 
-public_key, private_key = paillier.generate_paillier_keypair()
-arr_a = [1, 2, 3]
-arr_b = [2, 2, 2]
-enc_arr_a = [public_key.encrypt(x) for x in arr_a]
-enc_arr_b = [public_key.encrypt(x) for x in arr_b]
-enc_arr_c = [(enc_arr_a[i] + enc_arr_b[i]) for i in range(len(arr_b))]
-print(enc_arr_c)
-print([private_key.decrypt(x) for x in enc_arr_c])
+# public_key, private_key = paillier.generate_paillier_keypair()
+# arr_a = [1, 2, 3]
+# arr_b = [2, 2, 2]
+# enc_arr_a = [public_key.encrypt(x) for x in arr_a]
+# enc_arr_b = [public_key.encrypt(x) for x in arr_b]
+# enc_arr_c = [(enc_arr_a[i] + enc_arr_b[i]) for i in range(len(arr_b))]
+# print(enc_arr_c)
+# print([private_key.decrypt(x) for x in enc_arr_c])

@@ -26,7 +26,6 @@ import os
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import datetime
-import json
 
 
 class ImageHelper(Helper):
@@ -359,7 +358,7 @@ class ImageHelper(Helper):
 
 if __name__ == '__main__':
     np.random.seed(1)
-    with open(f'./utils/cifar_params.yaml', 'r') as f:
+    with open(f'utils/cifar_params.yaml', 'r') as f:
         params_loaded = yaml.load(f)
     current_time = datetime.datetime.now().strftime('%b.%d_%H.%M.%S')
     helper = ImageHelper(current_time=current_time, params=params_loaded,

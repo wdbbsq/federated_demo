@@ -11,6 +11,7 @@ from PIL import Image
 
 import inversefed
 
+from collections import defaultdict
 import datetime
 import time
 import os
@@ -24,18 +25,19 @@ defs = inversefed.training_strategy('conservative')
 defs.epochs = args.epochs
 # 100% reproducibility?
 if args.deterministic:
-    inversefed.utils.set_deterministic()
+    inference_examples.inference_cpl.GradInverting.inversefed.utils.set_deterministic()
+
 
 if __name__ == "__main__":
     # Choose GPU device and print status information:
-    setup = inversefed.utils.system_startup(args, defs)
+    setup = inference_examples.inference_cpl.GradInverting.inversefed.utils.system_startup(args)
     start_time = time.time()
 
     # Prepare for training
 
     # Get data:
     loss_fn, trainloader, validloader = inversefed.construct_dataloaders(args.dataset, defs, data_path=args.data_path)
-    print('-------------------------------')
+
     dm = torch.as_tensor(getattr(inversefed.consts, f'{args.dataset.lower()}_mean'), **setup)[:, None, None]
     ds = torch.as_tensor(getattr(inversefed.consts, f'{args.dataset.lower()}_std'), **setup)[:, None, None]
 
@@ -47,13 +49,11 @@ if __name__ == "__main__":
         model_seed = None
     else:
         model, model_seed = inversefed.construct_model(args.model, num_classes=10, num_channels=3)
-    print('-------------------------------')
     model.to(**setup)
     model.eval()
 
     # Sanity check: Validate model accuracy
-    # from collections import defaultdict
-    # training_stats = defaultdict(list)
+    training_stats = defaultdict(list)
     # inversefed.training.training_routine.validate(model, loss_fn, validloader, defs, setup, training_stats)
     # name, format = loss_fn.metric()
     # print(f'Val loss is {training_stats["valid_losses"][-1]:6.4f}, Val {name}: {training_stats["valid_" + name][-1]:{format}}.')
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     if args.num_images == 1:
         if args.target_id == -1:  # demo image
             # Specify PIL filter for lower pillow versions
-            ground_truth = torch.as_tensor(np.array(Image.open("other_picture.jpg").resize((32, 32), Image.BICUBIC)) / 255, **setup)
+            ground_truth = torch.as_tensor(np.array(Image.open("auto.jpg").resize((32, 32), Image.BICUBIC)) / 255, **setup)
             ground_truth = ground_truth.permute(2, 0, 1).sub(dm).div(ds).unsqueeze(0).contiguous()
             if not args.label_flip:
                 labels = torch.as_tensor((1,), device=setup['device'])
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         input_gradient = [grad.detach() for grad in input_gradient]
         full_norm = torch.stack([g.norm() for g in input_gradient]).mean()
         print(f'Full gradient norm is {full_norm:e}.')
-        print('-------------------------------')
+
         # Run reconstruction in different precision?
         if args.dtype != 'float':
             if args.dtype in ['double', 'float64']:
@@ -161,8 +161,8 @@ if __name__ == "__main__":
     else:
         local_gradient_steps = args.accumulation
         local_lr = 1e-4
-        input_parameters = inversefed.reconstruction_algorithms.loss_steps(model, ground_truth, labels,
-                                                                           lr=local_lr, local_steps=local_gradient_steps)
+        input_parameters = inference_examples.inference_cpl.GradInverting.inversefed.reconstruction_algorithms.loss_steps(model, ground_truth, labels,
+                                                                                                                          lr=local_lr, local_steps=local_gradient_steps)
         input_parameters = [p.detach() for p in input_parameters]
 
         # Run reconstruction in different precision?
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     # Compute stats
     test_mse = (output - ground_truth).pow(2).mean().item()
     feat_mse = (model(output) - model(ground_truth)).pow(2).mean().item()
-    test_psnr = inversefed.metrics.psnr(output, ground_truth, factor=1 / ds)
+    test_psnr = inference_examples.inference_cpl.GradInverting.inversefed.metrics.psnr(output, ground_truth, factor=1 / ds)
 
 
     # Save the resulting image
@@ -226,35 +226,35 @@ if __name__ == "__main__":
     # Save to a table:
     print(f"Rec. loss: {stats['opt']:2.4f} | MSE: {test_mse:2.4f} | PSNR: {test_psnr:4.2f} | FMSE: {feat_mse:2.4e} |")
 
-    inversefed.utils.save_to_table(args.table_path, name=f'exp_{args.name}', dryrun=args.dryrun,
+    inference_examples.inference_cpl.GradInverting.inversefed.utils.save_to_table(args.table_path, name=f'exp_{args.name}', dryrun=args.dryrun,
 
-                                   model=args.model,
-                                   dataset=args.dataset,
-                                   trained=args.trained_model,
-                                   accumulation=args.accumulation,
-                                   restarts=args.restarts,
-                                   OPTIM=args.optim,
-                                   cost_fn=args.cost_fn,
-                                   indices=args.indices,
-                                   weights=args.weights,
-                                   scoring=args.scoring_choice,
-                                   init=args.init,
-                                   tv=args.tv,
+                                                                                  model=args.model,
+                                                                                  dataset=args.dataset,
+                                                                                  trained=args.trained_model,
+                                                                                  accumulation=args.accumulation,
+                                                                                  restarts=args.restarts,
+                                                                                  OPTIM=args.optim,
+                                                                                  cost_fn=args.cost_fn,
+                                                                                  indices=args.indices,
+                                                                                  weights=args.weights,
+                                                                                  scoring=args.scoring_choice,
+                                                                                  init=args.init,
+                                                                                  tv=args.tv,
 
-                                   rec_loss=stats["opt"],
-                                   psnr=test_psnr,
-                                   test_mse=test_mse,
-                                   feat_mse=feat_mse,
+                                                                                  rec_loss=stats["opt"],
+                                                                                  psnr=test_psnr,
+                                                                                  test_mse=test_mse,
+                                                                                  feat_mse=feat_mse,
 
-                                   target_id=target_id,
-                                   seed=model_seed,
-                                   timing=str(datetime.timedelta(seconds=time.time() - start_time)),
-                                   dtype=setup['dtype'],
-                                   epochs=defs.epochs,
-                                   val_acc=None,
-                                   rec_img=rec_filename,
-                                   gt_img=gt_filename
-                                   )
+                                                                                  target_id=target_id,
+                                                                                  seed=model_seed,
+                                                                                  timing=str(datetime.timedelta(seconds=time.time() - start_time)),
+                                                                                  dtype=setup['dtype'],
+                                                                                  epochs=defs.epochs,
+                                                                                  val_acc=None,
+                                                                                  rec_img=rec_filename,
+                                                                                  gt_img=gt_filename
+                                                                                  )
 
 
     # Print final timestamp

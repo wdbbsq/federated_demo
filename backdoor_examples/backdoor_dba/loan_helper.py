@@ -1,18 +1,10 @@
-from collections import defaultdict
 import config
-import torch
 import torch.utils.data
 import datetime
 from helper import Helper
-import random
 import logging
-from torchvision import datasets, transforms
-import numpy as np
 
 from models.loan_model import LoanNet
-import csv
-
-import os
 
 import pandas as pd
 
@@ -211,7 +203,7 @@ class LoanDataset(data.Dataset):
 
 if __name__ == '__main__':
 
-    with open(f'./utils/loan_params.yaml', 'r') as f:
+    with open(f'utils/loan_params.yaml', 'r') as f:
         params_loaded = yaml.load(f)
     current_time = datetime.datetime.now().strftime('%b.%d_%H.%M.%S')
 

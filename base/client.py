@@ -61,7 +61,7 @@ class BaseClient:
                 loss.backward()
                 optimizer.step()
 
-    def calc_update(self, global_model, local_model, global_epoch):
+    def calc_update(self, global_model, local_model, global_epoch, attack_now):
         """
         计算模型参数的差异
         """
@@ -79,4 +79,4 @@ class BaseClient:
         local_model = self.get_local_model(global_model)
         optimizer = self.get_optimizer(local_model)
         self.local_train(local_model, optimizer)
-        return self.calc_update(global_model, local_model, global_epoch)
+        return self.calc_update(global_model, local_model, global_epoch, attack_now)

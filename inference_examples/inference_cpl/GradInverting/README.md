@@ -37,7 +37,7 @@ To run ImageNet experiments, you need to download ImageNet and provide its locat
 
 
 ### Quick Start
-Usage examples can be found in the notebooks, for example the [ResNet-152, ImageNet](ResNet152%20-%20trained%20on%20ImageNet.ipynb) example.
+Usage examples can be found in the notebooks, for example the [ResNet-152, ImageNet](ResNet152 - trained on ImageNet.ipynb) example.
 Given an input gradient (as computed by e.g. ```torch.autograd.grad```), a ```config``` dictionary, a model ```model``` and dataset mean and std, ```(dm, ds)```, build the reconstruction operator
 ```
 rec_machine = inversefed.GradientReconstructor(model, (dm, ds), config, num_images=1)

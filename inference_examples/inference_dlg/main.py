@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
 import argparse
-import numpy as np
-from pprint import pprint
 
 from PIL import Image
 import matplotlib.pyplot as plt
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import grad
 import torchvision
-from torchvision import models, datasets, transforms
+from torchvision import datasets, transforms
 
 print(torch.__version__, torchvision.__version__)
 
-from utils import label_to_onehot, cross_entropy_for_onehot
+from inference_examples.inference_dlg.utils import label_to_onehot, cross_entropy_for_onehot
 
 parser = argparse.ArgumentParser(description='Deep Leakage from Gradients.')
 parser.add_argument('--index', type=int, default="25",
@@ -47,7 +43,7 @@ gt_onehot_label = label_to_onehot(gt_label)
 
 plt.imshow(tt(gt_data[0].cpu()))
 
-from models.vision import LeNet, weights_init
+from inference_examples.inference_dlg.models.vision import LeNet, weights_init
 
 net = LeNet().to(device)
 

@@ -1,8 +1,6 @@
 import utils.csv_record as csv_record
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import time
 import main
 import test
 import copy
@@ -65,7 +63,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison,state_ke
             if is_poison and state_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
                 main.logger.info('poison_now')
                 _, acc_p, _, _ = test.Mytest_poison(helper=helper, epoch=epoch,
-                                               model=model, is_poison=True, visualize=False, agent_name_key=state_key)
+                                                    model=model, is_poison=True, visualize=False, agent_name_key=state_key)
                 main.logger.info(acc_p)
                 poison_lr = helper.params['poison_lr']
                 if not helper.params['baseline']:
@@ -208,7 +206,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison,state_ke
                                                            total_l, correct, dataset_size,
                                                            acc))
                     csv_record.train_result.append([state_key, temp_local_epoch,
-                                         epoch, internal_epoch, total_l.item(), acc, correct, dataset_size])
+                                                    epoch, internal_epoch, total_l.item(), acc, correct, dataset_size])
 
                     if helper.params['vis_train']:
                         model.train_vis(main.vis, temp_local_epoch,
@@ -218,15 +216,15 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison,state_ke
 
             # test local model after internal epoch train finish
             epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest(helper=helper, epoch=epoch,
-                                                                      model=model, is_poison=False, visualize=True,
-                                                                      agent_name_key=state_key)
+                                                                           model=model, is_poison=False, visualize=True,
+                                                                           agent_name_key=state_key)
             csv_record.test_result.append([state_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
 
             if is_poison:
                 if state_key in helper.params['adversary_list'] and (epoch in localmodel_poison_epochs):
                     epoch_loss, epoch_acc, epoch_corret, epoch_total = test.Mytest_poison(helper=helper, epoch=epoch,
-                                                                                     model=model, is_poison=True,
-                                                                                     visualize=True, agent_name_key=state_key)
+                                                                                          model=model, is_poison=True,
+                                                                                          visualize=True, agent_name_key=state_key)
                     csv_record.posiontest_result.append([state_key, epoch, epoch_loss, epoch_acc, epoch_corret, epoch_total])
 
                 #  test on local triggers
@@ -239,7 +237,7 @@ def LoanTrain(helper, start_epoch, local_model, target_model, is_poison,state_ke
                     epoch_loss, epoch_acc, epoch_corret, epoch_total = \
                         test.Mytest_poison_agent_trigger(helper=helper, model=model, agent_name_key=state_key)
                     csv_record.poisontriggertest_result.append([state_key, state_key + "_trigger", "", epoch, epoch_loss,
-                                                     epoch_acc, epoch_corret,epoch_total])
+                                                                epoch_acc, epoch_corret, epoch_total])
                     if helper.params['vis_trigger_split_test']:
                         model.trigger_agent_test_vis(vis=main.vis, epoch=epoch, acc=epoch_acc, loss=None,
                                                      eid=helper.params['environment_name'],

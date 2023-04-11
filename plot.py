@@ -77,18 +77,22 @@ def backdoor_dba(work_dir, filename):
     """
     dba基准
     """
-    plot(y_data=(get_data(work_dir=work_dir,
+    plot(y_data=(get_data(work_dir='backdoor/logs/',
+                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
+                          selected_rows=[1, 3]) +
+                 get_data(work_dir=work_dir,
                           filename=filename,
                           selected_rows=[1, 3])
                  ),
          csv_title='',
          legends=[
-             '攻击者比例$\mathrm{ - 0\% }$',
-             '攻击者比例$\mathrm{ - 20\% }$',
-             '攻击者比例$\mathrm{ - 40\% }$',
+             '不攻击 $\mathrm{ MTA }$',
+             '不攻击 $\mathrm{ BTA }$',
+             '连续攻击 $\mathrm{ MTA }$',
+             '连续攻击 $\mathrm{ BTA }$',
          ],
-         colors=['b', 'r', 'r'],
-         linestyles=['-', '-', '--'],
+         colors=['b', 'b', 'r', 'r'],
+         linestyles=['--', '--', '-', '-'],
          xlabel='轮次',
          ylabel='准确率')
 

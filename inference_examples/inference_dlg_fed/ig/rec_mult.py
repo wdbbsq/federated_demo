@@ -42,12 +42,12 @@ defs = inversefed.training_strategy('conservative')
 defs.epochs = args.epochs
 # 100% reproducibility?
 if args.deterministic:
-    inversefed.utils.set_deterministic()
+    inference_examples.inference_dlg_fed.ig.inversefed.utils.set_deterministic()
 
 
 if __name__ == "__main__":
     # Choose GPU device and print status information:
-    setup = inversefed.utils.system_startup(args)
+    setup = inference_examples.inference_dlg_fed.ig.inversefed.utils.system_startup(args)
     start_time = time.time()
 
     # Prepare for training
@@ -197,10 +197,10 @@ if __name__ == "__main__":
             local_gradient_steps = args.accumulation
             local_lr = args.local_lr
             batch_size = args.batch_size
-            input_parameters = inversefed.reconstruction_algorithms.loss_steps(model, ground_truth,
-                                                                               labels,
-                                                                               lr=local_lr,
-                                                                               local_steps=local_gradient_steps, use_updates=True, batch_size=batch_size)
+            input_parameters = inference_examples.inference_dlg_fed.ig.inversefed.reconstruction_algorithms.loss_steps(model, ground_truth,
+                                                                                                                       labels,
+                                                                                                                       lr=local_lr,
+                                                                                                                       local_steps=local_gradient_steps, use_updates=True, batch_size=batch_size)
             input_parameters = [p.detach() for p in input_parameters]
 
             # Run reconstruction in different precision?
@@ -233,7 +233,7 @@ if __name__ == "__main__":
         ground_truth_den = torch.clamp(ground_truth * ds + dm, 0, 1)
         feat_mse = (model(output) - model(ground_truth)).pow(2).mean().item()
         test_mse = (output_den - ground_truth_den).pow(2).mean().item()
-        test_psnr = inversefed.metrics.psnr(output_den, ground_truth_den, factor=1)
+        test_psnr = inference_examples.inference_dlg_fed.ig.inversefed.metrics.psnr(output_den, ground_truth_den, factor=1)
         print(f"Rec. loss: {stats['opt']:2.4f} | MSE: {test_mse:2.4f} | PSNR: {test_psnr:4.2f} | FMSE: {feat_mse:2.4e} |")
 
         # Save the resulting image
@@ -253,7 +253,7 @@ if __name__ == "__main__":
 
         # Save psnr values
         psnrs.append(test_psnr)
-        inversefed.utils.save_to_table(f'results/{config_hash}', name='psnrs', dryrun=args.dryrun, target_id=target_id, psnr=test_psnr)
+        inference_examples.inference_dlg_fed.ig.inversefed.utils.save_to_table(f'results/{config_hash}', name='psnrs', dryrun=args.dryrun, target_id=target_id, psnr=test_psnr)
 
         # Update target id
         target_id = target_id_

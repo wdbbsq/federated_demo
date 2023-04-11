@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # 初始化数据集
     clean_train_set, poisoned_train_set = build_training_sets(is_train=True, args=args)
-    dataset_val_clean, dataset_val_poisoned = build_test_set(is_train=False, args=args)
+    clean_eval_dataset, poisoned_eval_dataset = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     args.input_channels = poisoned_train_set.channels
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         else:
             clean_clients.append(i)
 
-    server = Server(args, dataset_val_clean, dataset_val_poisoned, device)
+    server = Server(args, clean_eval_dataset, poisoned_eval_dataset, device)
 
     status = []
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
@@ -76,14 +76,10 @@ if __name__ == '__main__':
         if attack_now:
             args.attack_epochs.pop(0)
             k = 2
-            # candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
             candidates = random.sample(evil_clients, k) + \
                 random.sample(clean_clients, args.k_workers - args.adversary_num + k)
         else:
-            # candidates = random.sample(clean_clients, args.k_workers)
-            '''
-            '''
-            candidates = evil_clients
+            candidates = random.sample(clean_clients, args.k_workers)
 
         client_ids_map = get_clients_indices(candidates)
 
@@ -95,7 +91,7 @@ if __name__ == '__main__':
         local_updates = []
         for idx in candidates:
             c = clients[idx]
-            local_update = c.local_train(server.global_model, epoch, attack_now)
+            local_update = c.boot_training(server.global_model, epoch, attack_now)
             local_updates.append({
                 'id': c.client_id,
                 'local_update': local_update
@@ -121,15 +117,15 @@ if __name__ == '__main__':
                     'cos_list': cos_list,
                     'client_ids_map': client_ids_map
                 }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
-
+            # 进行防御
             server.apply_defense(LAYER_NAME, local_updates)
 
         server.model_aggregate(weight_accumulator)
-        test_status = server.evaluate_badnets(device)
+        test_status = server.evaluate_backdoor(device, epoch, LOG_PREFIX)
 
         status.append({
             'epoch': epoch,
-            **{f'test_{k}': v for k, v in test_status.items()}
+            **{f'{k}': v for k, v in test_status.items()}
         })
         df = pd.DataFrame(status)
         df.to_csv(f"{LOG_PREFIX}/{args.attack_method}_{args.model_name}_{args.total_workers}_{args.k_workers}_Scale{args.need_scale}{args.weight_scale}_trigger{args.trigger_label}.csv",

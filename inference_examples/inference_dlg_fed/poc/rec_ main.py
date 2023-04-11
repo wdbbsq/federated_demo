@@ -4,7 +4,6 @@ import torch
 torch.backends.cudnn.benchmark = True
 import torchvision
 
-import core
 import core.options
 import core.loader.modelloader as modelloader
 import core.loader.dataloader as dataloader
@@ -90,15 +89,15 @@ if __name__ == "__main__":
     setup = core.utils.system_startup()
     start_time = time.time()
     # Collect data set:
-    _dm, _ds, loss_fn, trainloader, validloader = dataloader.load_dataset(dataset=args.dataset, 
-                                                                          data_path=args.data_path, 
+    _dm, _ds, loss_fn, trainloader, validloader = dataloader.load_dataset(dataset=args.dataset,
+                                                                          data_path=args.data_path,
                                                                           batchsize=args.trained_batchsize)
     dm = torch.as_tensor(_dm, **setup)[:, None, None]
     ds = torch.as_tensor(_ds, **setup)[:, None, None]
     print('-------------------------------')
     # Collect model:
-    model, model_seed = modelloader.load_model(model=args.model, 
-                                               num_classes=args.num_classes, 
+    model, model_seed = modelloader.load_model(model=args.model,
+                                               num_classes=args.num_classes,
                                                num_channels=args.num_channels)
     model.to(**setup)
     model.eval()
@@ -176,7 +175,7 @@ if __name__ == "__main__":
     
     if args.defense:
         #Run defense
-        parameters = perturbation.fc_perturb(parameters=parameters,  
+        parameters = perturbation.fc_perturb(parameters=parameters,
                                              model=model,
                                              ground_truth=ground_truth,
                                              pruning_rate=args.pruning_rate,

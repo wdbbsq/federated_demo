@@ -1,11 +1,28 @@
+from typing import Dict
+
 import numpy
 import torch
 from scipy.spatial import distance
 
 
+def scale_update(weight_scale: int, local_update: Dict[str, torch.Tensor]):
+    """
+    按比例缩放参数
+    """
+    for name, value in local_update.items():
+        value.mul_(weight_scale)
+
+
 def calc_dist(model_dict_a, model_dict_b, layer_name):
-    return distance.cdist(get_vector(model_dict_a, layer_name),
-                          get_vector(model_dict_b, layer_name), "euclidean")[0][0]
+    """
+    计算模型某一层的欧式距离
+    """
+    return calc_vector_dist(get_vector(model_dict_a, layer_name),
+                            get_vector(model_dict_b, layer_name))
+
+
+def calc_vector_dist(vec_1, vec_2):
+    return distance.cdist(vec_1, vec_2, "euclidean")[0][0]
 
 
 def get_vector(model_dict, layer_name):
@@ -20,7 +37,6 @@ def get_grads(model, loss):
                                      [x for x in model.parameters() if
                                       x.requires_grad],
                                      retain_graph=True))
-
     return grads
 
 
