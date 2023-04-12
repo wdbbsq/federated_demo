@@ -16,7 +16,7 @@ class Server(BaseServer):
         norm_list, median_norm = compute_norms(self.global_model.state_dict(),
                                                local_updates, layer_name)
         for idx, update in enumerate(local_updates):
-            scale_update(min(1, median_norm / norm_list[idx]), update)
+            scale_update(min(1, median_norm / norm_list[idx]), update['local_update'])
 
     def evaluate_backdoor(self, device, epoch, file_path):
         mta = self.eval_model(self.eval_dataloader, device, epoch, file_path)

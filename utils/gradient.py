@@ -5,11 +5,15 @@ import torch
 from scipy.spatial import distance
 
 
-def scale_update(weight_scale: int, local_update: Dict[str, torch.Tensor]):
+def scale_update(weight_scale, local_update: Dict[str, torch.Tensor]):
     """
     按比例缩放参数
     """
+    if weight_scale == 1:
+        return
     for name, value in local_update.items():
+        if type(weight_scale) != int and value.dtype == torch.int64:
+            continue
         value.mul_(weight_scale)
 
 
@@ -26,6 +30,9 @@ def calc_vector_dist(vec_1, vec_2):
 
 
 def get_vector(model_dict, layer_name):
+    """
+    将输入Tensor转换为1维
+    """
     return model_dict[layer_name].reshape(1, -1).cpu().numpy()
 
 

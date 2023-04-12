@@ -49,6 +49,8 @@ if __name__ == '__main__':
     args.k_workers = int(args.total_workers * args.global_lr)
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
 
+    torch.cuda.empty_cache()
+
     # 初始化数据集
     clean_train_set, poisoned_train_set = build_training_sets(is_train=True, args=args)
     clean_eval_dataset, poisoned_eval_dataset = build_test_set(is_train=False, args=args)
@@ -75,9 +77,7 @@ if __name__ == '__main__':
         attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
             args.attack_epochs.pop(0)
-            k = 2
-            candidates = random.sample(evil_clients, k) + \
-                random.sample(clean_clients, args.k_workers - args.adversary_num + k)
+            candidates = evil_clients + random.sample(clean_clients, args.k_workers - args.adversary_num)
         else:
             candidates = random.sample(clean_clients, args.k_workers)
 
@@ -117,7 +117,8 @@ if __name__ == '__main__':
                     'cos_list': cos_list,
                     'client_ids_map': client_ids_map
                 }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
-            # 进行防御
+        # 进行防御
+        if args.defense:
             server.apply_defense(LAYER_NAME, local_updates)
 
         server.model_aggregate(weight_accumulator)

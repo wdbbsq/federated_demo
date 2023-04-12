@@ -61,7 +61,7 @@
             "justMyCode": true
         },
         {
-            "name": "Backdoor cifar clip",
+            "name": "Backdoor cifar",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/run_backdoor.py",
@@ -71,18 +71,18 @@
                 "--dataset", "CIFAR10",
                 "--model_name", "resnet18",
                 
-                "--global_epochs", "30",
+                "--global_epochs", "40",
                 "--batch_size", "32",
                 "--lr", "0.001",
                 "--lambda_", "0.1",
                 "--momentum", "0.0001",
 
-                "--total_workers", "100",
+                "--total_workers", "4",
 
                 "--attack",
-                // "--need_scale",
+                "--need_scale",
                 "--weight_scale", "4",
-                "--adversary_num", "0",
+                "--adversary_num", "1",
                 "--defense",
             ],
             "justMyCode": true
