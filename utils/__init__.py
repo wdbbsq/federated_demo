@@ -33,11 +33,15 @@ def get_dataset(path, name):
 
 def get_clients_indices(candidates):
     """
-
-    :param candidates:
-    :return: Dict[客户端id 下标]
+    获取客户端id和下标的映射和反向映射
+    :param candidates: 参与训练的客户端id数组
+    :return: id_seq_map[客户端id 下标]；seq_id_map[下标 客户端id]
     """
-    indices = dict()
+    id_seq_map, seq_id_map = dict(), dict()
     for i, client_id in enumerate(candidates):
-        indices[client_id] = i
-    return indices
+        id_seq_map[client_id] = i
+        seq_id_map[i] = client_id
+    return {
+        'id_seq_map': id_seq_map,
+        'seq_id_map': seq_id_map
+    }

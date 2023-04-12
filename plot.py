@@ -73,6 +73,28 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.show()
 
 
+def inference():
+    """
+    推理攻击对比
+    """
+    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-11-21-45-31/',
+                          filename='central_infer_net_4_3_ScaleFalse100_trigger1.csv',
+                          selected_rows=[1,]) +
+                 get_data(work_dir='backdoor/logs/2023-04-11-21-52-02/',
+                          filename='central_infer_net_4_2_ScaleFalse100_trigger1.csv',
+                          selected_rows=[1,])
+                 ),
+         csv_title='',
+         legends=[
+             '传统联邦学习',
+             '联邦学习隐私保护框架',
+         ],
+         colors=['b', 'r'],
+         linestyles=['-', '-'],
+         xlabel='轮次',
+         ylabel='准确率')
+
+
 def backdoor_dba(work_dir, filename):
     """
     dba基准
@@ -250,3 +272,5 @@ backdoor_dba('backdoor/logs/2023-04-03-14-56-45/',
 # poison_baseline()
 
 # poison_defense()
+
+# inference()

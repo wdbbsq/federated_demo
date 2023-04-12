@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 from models import get_model
 
@@ -170,6 +171,14 @@ for name, data in net.state_dict().items():
     #     x = float(x)
     #     print(x)
 print(model_dict)
+
+a = torch.randn(3)
+print(a)
+a.mul_(10)
+print(a)
+a.mul_(0.3)
+print(a)
+
 pass
 
 # public_key, private_key = paillier.generate_paillier_keypair()

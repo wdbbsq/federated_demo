@@ -5,16 +5,13 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.metrics.pairwise import cosine_similarity
 
 from backdoor.attack.dataset import build_training_sets, build_test_set
 from backdoor.client import Client
 from backdoor.server import Server
 from utils import get_clients_indices
 from utils.file_utils import prepare_operation
-from utils.gradient import get_vector
 from utils.params import init_parser
-from utils.serialization import save_as_file
 
 LOG_PREFIX = './backdoor/logs'
 LAYER_NAME = 'fc.weight'
@@ -41,6 +38,8 @@ if __name__ == '__main__':
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', action='store_true', help='是否防御')
+    parser.add_argument('--cluster', action='store_true', help='是否聚类')
+    parser.add_argument('--clip', action='store_true', help='是否剪枝')
     # other setting
     parser.add_argument('--need_serialization', action='store_true', help='是否保存训练中间结果')
 
@@ -73,6 +72,7 @@ if __name__ == '__main__':
     status = []
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
     for epoch in range(args.global_epochs):
+        server.preparation()
         # 本轮迭代是否进行攻击
         attack_now = args.attack and len(args.attack_epochs) != 0 and epoch == args.attack_epochs[0]
         if attack_now:
@@ -83,45 +83,16 @@ if __name__ == '__main__':
 
         client_ids_map = get_clients_indices(candidates)
 
-        # 客户端上传的模型更新
-        weight_accumulator = dict()
-        for name, params in server.global_model.state_dict().items():
-            weight_accumulator[name] = torch.zeros_like(params)
-
-        local_updates = []
         for idx in candidates:
             c = clients[idx]
             local_update = c.boot_training(server.global_model, epoch, attack_now)
-            local_updates.append({
-                'id': c.client_id,
-                'local_update': local_update
-            })
-            # 累加客户端更新
-            for name, params in server.global_model.state_dict().items():
-                weight_accumulator[name].add_(local_update[name])
+            server.sum_update(local_update, idx)
 
-        if attack_now and args.defense:
-            # 计算余弦相似度
-            cos_list = np.zeros([args.k_workers, args.k_workers])
-            for i, j in list(combinations(local_updates, 2)):
-                cos = cosine_similarity(get_vector(i['local_update'], LAYER_NAME),
-                                        get_vector(j['local_update'], LAYER_NAME))[0][0]
-                x, y = client_ids_map.get(i['id']), client_ids_map.get(j['id'])
-                cos_list[x][y] = cos
-                cos_list[y][x] = cos
-            for i in range(args.k_workers):
-                cos_list[i][i] = 1
-
-            if args.need_serialization:
-                save_as_file({
-                    'cos_list': cos_list,
-                    'client_ids_map': client_ids_map
-                }, f'{LOG_PREFIX}/{epoch}_cos_numpy')
         # 进行防御
         if args.defense:
-            server.apply_defense(LAYER_NAME, local_updates)
+            server.apply_defense(LAYER_NAME, args.k_workers, client_ids_map)
 
-        server.model_aggregate(weight_accumulator)
+        server.model_aggregate()
         test_status = server.evaluate_backdoor(device, epoch, LOG_PREFIX) if args.attack else \
             server.eval_model(server.eval_dataloader, device, epoch, LOG_PREFIX)
 
