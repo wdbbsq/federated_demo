@@ -29,6 +29,7 @@ class TriggerHandler(object):
         if split_trigger:
             # dba触发器大小减半
             trigger_size = int(trigger_size / 2)
+            # 读取局部触发器
             for i in range(1, 5):
                 self.trigger_img.append(
                     get_trigger_data(f'{trigger_path}_{i}.png', trigger_size, trigger_size)
@@ -56,7 +57,8 @@ class CIFAR10Poison(CIFAR10):
             target_transform: Optional[Callable] = None,
             download: bool = False,
     ) -> None:
-        super().__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
+        super(CIFAR10Poison, self).__init__(root, train=train, transform=transform,
+                                            target_transform=target_transform, download=download)
 
         self.width, self.height, self.channels = self.__shape_info__()
         # 只有训练集才分裂触发器
@@ -89,12 +91,14 @@ class CIFAR10Poison(CIFAR10):
         # NOTE: According to the threat model, the trigger should be put on the image before transform.
         # (The attacker can only poison the dataset)
         if self.split_trigger:
+            # dba训练集需要拆分触发器
             for i in range(4):
                 if index in self.poi_indices[i]:
                     target = self.trigger_handler.trigger_label
                     img = self.trigger_handler.put_trigger(img, idx=i + 1)
                     break
         else:
+            # 其他情况则不拆分触发器
             if index in self.poi_indices:
                 target = self.trigger_handler.trigger_label
                 img = self.trigger_handler.put_trigger(img)

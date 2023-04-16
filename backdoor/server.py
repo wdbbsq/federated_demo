@@ -16,28 +16,9 @@ MAX_CENTER_DIST = 1
 class Server(BaseServer):
     def __init__(self, args, clean_eval_dataset, poisoned_eval_dataset, device):
         super(Server, self).__init__(args, clean_eval_dataset, device)
-        self.defense = args.defense
         self.poisoned_dataloader = DataLoader(poisoned_eval_dataset,
                                               batch_size=args.batch_size,
                                               shuffle=True)
-        self.local_updates = []
-
-    def preparation(self):
-        super(Server, self).preparation()
-        # 重置客户端更新记录
-        self.local_updates = []
-
-    def sum_update(self, client_update, client_id=-1):
-        """
-        重写父类方法，进行防御时记录更新
-        """
-        if self.defense:
-            self.local_updates.append({
-                'id': client_id,
-                'local_update': client_update
-            })
-        else:
-            super(Server, self).sum_update(client_update)
 
     def apply_defense(self, layer_name, k_workers, client_ids_map):
         """
