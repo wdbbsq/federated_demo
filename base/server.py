@@ -12,6 +12,7 @@ from utils.eval import model_evaluation
 class BaseServer:
     def __init__(self, args, eval_dataset, device):
         self.args = args
+        self.defense = args.defense
         self.global_model = get_model(args.model_name,
                                       device,
                                       input_channels=args.input_channels,
@@ -21,6 +22,7 @@ class BaseServer:
                                           shuffle=True)
         # 保存客户端上传的模型更新
         self.weight_accumulator = dict()
+        self.local_updates = []
 
     def preparation(self):
         """
@@ -30,13 +32,21 @@ class BaseServer:
         self.weight_accumulator = dict()
         for name, params in self.global_model.state_dict().items():
             self.weight_accumulator[name] = torch.zeros_like(params)
+        # 重置客户端更新记录
+        self.local_updates = []
 
-    def sum_update(self, client_update):
+    def sum_update(self, client_update, client_id=-1):
         """
         累加客户端更新
         """
-        for name, params in self.global_model.state_dict().items():
-            self.weight_accumulator[name].add_(client_update[name])
+        if self.defense:
+            self.local_updates.append({
+                'id': client_id,
+                'local_update': client_update
+            })
+        else:
+            for name, params in self.global_model.state_dict().items():
+                self.weight_accumulator[name].add_(client_update[name])
 
     def model_aggregate(self):
         """
