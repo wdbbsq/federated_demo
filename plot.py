@@ -1,6 +1,7 @@
 import csv
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from pylab import *
@@ -53,7 +54,7 @@ def plot_confusion_matrix(conf_matrix):
     plt.show()
 
 
-def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel, csv_title='', save_pic=False):
+def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel, csv_title='', lim_axis=False):
     if len(y_data) != len(legends) != len(colors) != len(linestyles):
         raise Exception('params length dont match')
     # 设置图片大小
@@ -64,6 +65,9 @@ def plot(y_data: List[List[float]], legends, colors, linestyles, xlabel, ylabel,
     plt.ylabel(ylabel)
     plt.xticks(**tick_labels_style)
     plt.yticks(**tick_labels_style)
+    # 限定y轴范围
+    if lim_axis:
+        plt.ylim(0, 1)
     # x轴坐标显示为整数
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     for idx, data in enumerate(y_data):
@@ -115,6 +119,30 @@ def backdoor_dba(work_dir, filename):
          ],
          colors=['b', 'b', 'r', 'r'],
          linestyles=['--', '--', '-', '-'],
+         xlabel='轮次',
+         ylabel='准确率')
+
+
+def backdoor_clip():
+    """
+    dba基准
+    """
+    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-12-18-20-20/',
+                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+                          selected_rows=[1, 3]) +
+                 get_data(work_dir='backdoor/logs/2023-04-12-15-38-50/',
+                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+                          selected_rows=[1, 3])
+                 ),
+         csv_title='',
+         legends=[
+             '不攻击 $\mathrm{ MTA }$',
+             '不攻击 $\mathrm{ BTA }$',
+             '不攻击 $\mathrm{ BTA }$',
+             '不攻击 $\mathrm{ BTA }$',
+         ],
+         colors=['b', 'b', 'r', 'r'],
+         linestyles=['-', '-', '--', '--'],
          xlabel='轮次',
          ylabel='准确率')
 
@@ -241,6 +269,26 @@ def backdoor_baseline():
          xlabel='轮次',
          ylabel='准确率')
 
+def backdoor_cluster():
+    """
+    后门攻击+kmeans
+    """
+    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-12-21-50-57/',
+                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+                          selected_rows=[1, 3]) +
+                 get_data(work_dir='backdoor/logs/2023-04-12-18-20-20/',
+                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+                          selected_rows=[1, 3])
+                 ),
+         legends=['$\mathrm{MTA}$ 不攻击',
+                  '$\mathrm{BTA}$ 不攻击',
+                  '$\mathrm{MTA}$ 连续攻击',
+                  '$\mathrm{BTA}$ 连续攻击'],
+         colors=['b', 'r', 'b', 'r'],
+         linestyles=['--', '--', '-', '-'],
+         xlabel='轮次',
+         ylabel='准确率')
+
     # plot(y_data=(get_data(work_dir='backdoor/logs/',
     #                       filename='MNIST_badnets_2023-03-08-18-58-57_trigger0.csv',
     #                       selected_rows=[1]) +
@@ -256,9 +304,11 @@ def backdoor_baseline():
     #      ylabel='准确率')
 
 
-# backdoor_baseline()]
+# backdoor_baseline()
 
 # backdoor_defense()
+
+backdoor_cluster()
 
 # backdoor_dba('backdoor/logs/2023-03-31-16-01-02/',
 #              'CIFAR10_resnet18_16_12_ScaleTrue2_trigger1.csv')
@@ -266,8 +316,10 @@ def backdoor_baseline():
 # backdoor_dba('backdoor/logs/2023-04-03-10-48-37/',
 #              'CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv')
 
-backdoor_dba('backdoor/logs/2023-04-03-14-56-45/',
-             'CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv')
+# backdoor_dba('backdoor/logs/2023-04-03-14-56-45/',
+#              'CIFAR10_resnet18_16_12_ScaleTrue3_trigger1.csv')
+
+# backdoor_clip()
 
 # poison_baseline()
 

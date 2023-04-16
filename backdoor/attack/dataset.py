@@ -19,11 +19,11 @@ def build_training_sets(is_train, args):
     if args.dataset == 'CIFAR10':
         clean_training_set = datasets.CIFAR10(args.data_path, train=is_train, download=True, transform=transform)
         poisoned_training_set = CIFAR10Poison(args, args.data_path, train=is_train, download=True,
-                                     transform=transform)
+                                              transform=transform)
     elif args.dataset == 'MNIST':
         clean_training_set = datasets.MNIST(args.data_path, train=is_train, download=True, transform=transform)
         poisoned_training_set = MNISTPoison(args, args.data_path, train=is_train, download=True,
-                                   transform=transform)
+                                            transform=transform)
     else:
         raise NotImplementedError()
 

@@ -1,18 +1,15 @@
 import argparse
-import numpy as np
-from pprint import pprint
 
 from PIL import Image
 import matplotlib.pyplot as plt
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import grad
-import torchvision
-from torchvision import models, datasets, transforms
+from torchvision import datasets, transforms
 from inference.attack import label_to_onehot, cross_entropy_for_onehot
-from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import structural_similarity
+
+from models import get_model
 from plot import plot
 
 
@@ -45,19 +42,18 @@ if len(args.image) > 1:
 gt_data = gt_data.view(1, *gt_data.size())
 gt_label = torch.Tensor([dst[img_index][1]]).long().to(device)
 gt_label = gt_label.view(1, )
-gt_onehot_label = label_to_onehot(gt_label)
+gt_onehot_label = label_to_onehot(gt_label, num_classes=100)
 
 plt.imshow(tt(gt_data[0].cpu()))
 
-from inference.models.vision import LeNet, weights_init
-from models import get_model
+from models.vision import LeNet, weights_init
 
 # net = get_model('badnets', device, input_channels=1, output_num=100)
 net = LeNet().to(device)
 
 torch.manual_seed(1234)
 
-# net.apply(weights_init)
+net.apply(weights_init)
 criterion = cross_entropy_for_onehot
 
 # compute original gradient
@@ -77,10 +73,13 @@ optimizer = torch.optim.LBFGS([dummy_data, dummy_label])
 
 # 目标图像的numpy数组
 target = gt_data[0][0].cpu().detach().numpy()
+# 目标标签
+target_label = torch.argmax(gt_onehot_label).item()
 
 data_history = []
 label_history = []
-ssim_res = []
+ssim_list = []
+infer_acc_list = []
 for iters in range(100):
     def closure():
         optimizer.zero_grad()
@@ -97,7 +96,12 @@ for iters in range(100):
         return grad_diff
 
     optimizer.step(closure)
-    ssim_res.append(ssim(dummy_data[0][0].cpu().detach().numpy(), target, data_range=target.max() - target.min()))
+    ssim = structural_similarity(dummy_data[0][0].cpu().detach().numpy(), target, data_range=target.max() - target.min())
+    pred_label = torch.argmax(dummy_label).item()
+    # label_acc = 0
+    label_acc = 1 if pred_label == target_label else 0
+    ssim_list.append(ssim)
+    infer_acc_list.append((ssim + label_acc) / 2)
     if iters % 10 == 0:
         current_loss = closure()
         print(iters, "%.4f" % current_loss.item())
@@ -112,9 +116,13 @@ for i in range(10):
 
 plt.show()
 
-plot(y_data=[ssim_res],
-     legends=['推理准确率'],
-     colors=['b'],
-     linestyles=['-'],
+plot(y_data=[ssim_list, infer_acc_list],
+     legends=[
+         '$\mathrm{ SSIM }$',
+         '推测准确率'
+     ],
+     colors=['b', 'r'],
+     linestyles=['-', '-'],
      xlabel='轮次',
-     ylabel='$\mathrm{ SSIM }$')
+     ylabel='准确率',
+     lim_axis=True)

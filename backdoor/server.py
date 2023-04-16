@@ -70,7 +70,7 @@ class Server(BaseServer):
         """
         # 计算余弦相似度
         cos_list = np.zeros([k_workers, k_workers])
-        (id_seq_map, seq_id_map) = client_ids_map
+        id_seq_map, seq_id_map = client_ids_map['id_seq_map'], client_ids_map['seq_id_map']
         for i, j in list(combinations(self.local_updates, 2)):
             cos = cosine_similarity(get_vector(i['local_update'], layer_name),
                                     get_vector(j['local_update'], layer_name))[0][0]
@@ -89,6 +89,7 @@ class Server(BaseServer):
 
         # kmeans
         clf = KMeans(n_clusters=2)
+        clf.fit(cos_list)
         centers = clf.cluster_centers_
         dist = calc_vector_dist(centers[0].reshape(1, -1),
                                 centers[1].reshape(1, -1))
