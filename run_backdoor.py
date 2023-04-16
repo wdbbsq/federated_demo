@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('--need_scale', action='store_true', help='是否缩放参数')
     parser.add_argument('--weight_scale', type=int, default=100, help='恶意更新缩放比例')
     epochs = list(range(40))
-    parser.add_argument('--attack_epochs', type=list, default=epochs[9:],
+    parser.add_argument('--attack_epochs', type=list, default=epochs[29:],
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', action='store_true', help='是否防御')

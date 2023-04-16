@@ -8,7 +8,7 @@ from tqdm import tqdm
 from models import get_model
 from base.client import BaseClient
 from utils.optimizer import get_optimizer
-from utils.gradient import get_grads, scale_update
+from utils.gradient import get_grads
 from utils.mgda import MGDASolver
 
 
@@ -28,8 +28,11 @@ class Client(BaseClient):
         # 缩放客户端更新
         if self.is_adversary and self.args.need_scale and attack_now:
             scale_update(self.args.weight_scale, local_update)
-
         return local_update
+
+def scale_update(weight_scale: int, local_update: Dict[str, torch.Tensor]):
+    for name, value in local_update.items():
+        value.mul_(weight_scale)
 
     # def compute_backdoor_loss(self, params, model, criterion, inputs_back,
     #                               labels_back, grads=None):
