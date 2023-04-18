@@ -75,8 +75,8 @@ def plot_in_3d(labels, x, title):
 # clean
 # obj = read_from_file('../logs/2023-03-20-14-58-06/7_cos_numpy')
 # backdoor
-# obj = read_from_file('../logs/2023-03-20-14-58-06/29_cos_numpy')
-obj = read_from_file('../logs/2023-03-20-22-34-25/25_cos_numpy')
+obj = read_from_file('../logs/2023-03-20-14-58-06/29_cos_numpy')
+# obj = read_from_file('../logs/2023-03-20-22-34-25/25_cos_numpy')
 cos_list = obj['cos_list']
 
 x = pca_of_gradients(cos_list, 2)
@@ -95,10 +95,10 @@ plot_in_2d(labels, x, 'KMeans')
 # plot_in_3d(labels, x, 'KMeans')
 
 # hdbscan
-hdb = HDBSCAN(min_cluster_size=3).fit(x)
-labels = hdb.labels_
-outliers = hdb.outlier_scores_
-plot_in_2d(labels, x, 'DBSCAN')
+# hdb = HDBSCAN(min_cluster_size=3).fit(x)
+# labels = hdb.labels_
+# outliers = hdb.outlier_scores_
+# plot_in_2d(labels, x, 'DBSCAN')
 # plot_in_3d(labels, x, 'DBSCAN')
 
 

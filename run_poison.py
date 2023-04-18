@@ -32,17 +32,17 @@ if __name__ == '__main__':
                         help='发起攻击的轮次 默认从15轮训练开始攻击')
     # defense settings
     parser.add_argument('--defense', action='store_true')
-    parser.add_argument('--defense_method', default='clique', help='[clique, krum, mean]')
+    parser.add_argument('--defense_method', default='clique', choices=['clique', 'krum', 'mean'])
 
     # other
-    parser.add_argument('--need_serialization', action='store_true')
+    parser.add_argument('--need_serialization', action='store_true', help='是否保存中间结果')
     args = parser.parse_args()
 
     args.k_workers = int(args.total_workers * args.global_lr)
     args.adversary_list = random.sample(range(args.total_workers), args.adversary_num) if args.attack else []
     # 初始化数据集
     train_datasets, args.nb_classes = build_poisoned_training_sets(is_train=True, args=args)
-    dataset_val_clean = build_test_set(is_train=False, args=args)
+    eval_dataset = build_test_set(is_train=False, args=args)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     args.input_channels = 1
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         else:
             clean_clients.append(i)
 
-    server = Server(args, dataset_val_clean, device)
+    server = Server(args, eval_dataset, device)
 
     status = []
     start_time, start_time_str, LOG_PREFIX = prepare_operation(args, LOG_PREFIX)
@@ -73,34 +73,17 @@ if __name__ == '__main__':
 
         client_ids_map = get_clients_indices(candidates)
 
-        # 客户端上传的模型更新
-        weight_accumulator = dict()
-        for name, params in server.global_model.state_dict().items():
-            weight_accumulator[name] = torch.zeros_like(params)
-
-        local_updates = []
+        server.preparation()
+        # 客户端本地训练
         for idx in candidates:
-            c = clients[idx]
-            local_update = c.local_train(server.global_model, epoch, attack_now)
-            if args.defense:
-                local_updates.append({
-                    'id': c.client_id,
-                    'local_update': local_update
-                })
-            else:
-                # 累加客户端更新
-                for name, params in server.global_model.state_dict().items():
-                    weight_accumulator[name].add_(local_update[name])
+            c: Client = clients[idx]
+            local_update = c.boot_training(server.global_model, epoch, attack_now)
+            server.sum_update(local_update, c.client_id)
         if args.defense:
-            clean_nodes = get_clean_updates(local_updates, args.defense_method)
-            for idx in clean_nodes:
-                for name, params in server.global_model.state_dict().items():
-                    weight_accumulator[name].add_(local_updates[client_ids_map.get(idx)]['local_update'][name])
-            if args.need_serialization:
-                save_as_file(local_updates, f'{LOG_PREFIX}/{epoch}_dist')
+            server.apply_defense(client_ids_map, LOG_PREFIX, epoch)
 
-        server.model_aggregate(weight_accumulator)
-        test_status = server.eval_model(device, epoch, LOG_PREFIX)
+        server.model_aggregate()
+        test_status = server.eval_model(server.eval_dataloader, device, epoch, LOG_PREFIX)
         status.append({
             'epoch': epoch,
             **{f'test_{k}': v for k, v in test_status.items()}

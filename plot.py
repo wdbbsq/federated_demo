@@ -20,9 +20,9 @@ tick_labels_style = {
 }
 
 
-def get_data(work_dir, filename, selected_rows: List[int]):
+def get_data(filename, selected_rows: List[int]):
     y_data_list = [[] for _ in range(len(selected_rows))]
-    with open(work_dir + filename, 'r', newline='') as dataSource:
+    with open(filename, 'r', newline='') as dataSource:
         rows = csv.reader(dataSource)
         next(rows)
         for row in rows:
@@ -81,12 +81,10 @@ def inference():
     """
     推理攻击对比
     """
-    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-11-21-45-31/',
-                          filename='central_infer_net_4_3_ScaleFalse100_trigger1.csv',
-                          selected_rows=[1,]) +
-                 get_data(work_dir='backdoor/logs/2023-04-11-21-52-02/',
-                          filename='central_infer_net_4_2_ScaleFalse100_trigger1.csv',
-                          selected_rows=[1,])
+    plot(y_data=(get_data(filename='backdoor/logs/2023-04-11-21-45-31/central_infer_net_4_3_ScaleFalse100_trigger1.csv',
+                          selected_rows=[1, ]) +
+                 get_data(filename='backdoor/logs/2023-04-11-21-52-02/central_infer_net_4_2_ScaleFalse100_trigger1.csv',
+                          selected_rows=[1, ])
                  ),
          csv_title='',
          legends=[
@@ -103,8 +101,7 @@ def backdoor_dba(work_dir, filename):
     """
     dba基准
     """
-    plot(y_data=(get_data(work_dir='backdoor/logs/',
-                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
+    plot(y_data=(get_data(filename='backdoor/logs/CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
                           selected_rows=[1, 3]) +
                  get_data(work_dir=work_dir,
                           filename=filename,
@@ -160,29 +157,26 @@ def backdoor_defense():
                          selected_rows=[i + 1])
         ydata = np.asarray(ydata) * 0.01
         plot(y_data=ydata,
-            csv_title='',
-            legends=[
-                '无防护',
-                '后门消除方法',
-            ],
-            colors=['r', 'b'],
-            linestyles=['-', '-'],
-            xlabel='轮次',
-            ylabel=labels[i])
+             csv_title='',
+             legends=[
+                 '无防护',
+                 '后门消除方法',
+             ],
+             colors=['r', 'b'],
+             linestyles=['-', '-'],
+             xlabel='轮次',
+             ylabel=labels[i])
 
 
 def poison_baseline():
     """
     投毒攻击基准实验
     """
-    plot(y_data=(get_data(work_dir='poison/logs/2023-03-26-11-18-23/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+    plot(y_data=(get_data(filename='poison/logs/2023-03-26-11-18-23/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[1]) +
-                 get_data(work_dir='poison/logs/2023-03-26-11-31-25/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                 get_data(filename='poison/logs/2023-03-26-11-31-25/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[1]) +
-                 get_data(work_dir='poison/logs/2023-03-26-12-01-38/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                 get_data(filename='poison/logs/2023-03-26-12-01-38/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[1])
                  ),
          csv_title='',
@@ -196,14 +190,11 @@ def poison_baseline():
          xlabel='轮次',
          ylabel='准确率')
 
-    plot(y_data=(get_data(work_dir='poison/logs/2023-03-26-11-18-23/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+    plot(y_data=(get_data(filename='poison/logs/2023-03-26-11-18-23/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[2]) +
-                 get_data(work_dir='poison/logs/2023-03-26-11-31-25/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                 get_data(filename='poison/logs/2023-03-26-11-31-25/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[2]) +
-                 get_data(work_dir='poison/logs/2023-03-26-12-01-38/',
-                          filename='MNIST_badnets_10_5_ScaleTrue4.csv',
+                 get_data(filename='poison/logs/2023-03-26-12-01-38/MNIST_badnets_10_5_ScaleTrue4.csv',
                           selected_rows=[2])
                  ),
          csv_title='',
@@ -227,14 +218,11 @@ def poison_defense():
     for i in range(1):
         plot(
             y_data=(
-                    get_data(work_dir='poison/logs/2023-03-26-16-25-34/',
-                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                    get_data(filename='poison/logs/2023-03-26-16-25-34/MNIST_badnets_24_18_ScaleTrue4.csv',
                              selected_rows=[i + 1]) +
-                    get_data(work_dir='poison/logs/2023-03-27-10-22-54/',
-                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                    get_data(filename='poison/logs/2023-03-27-10-22-54/MNIST_badnets_24_18_ScaleTrue4.csv',
                              selected_rows=[i + 1]) +
-                    get_data(work_dir='poison/logs/2023-03-27-15-01-01/',
-                             filename='MNIST_badnets_24_18_ScaleTrue4.csv',
+                    get_data(filename='poison/logs/2023-03-27-15-01-01/MNIST_badnets_24_18_ScaleTrue4.csv',
                              selected_rows=[i + 1])
             ),
             csv_title='',
@@ -250,65 +238,66 @@ def poison_defense():
         )
 
 
-def backdoor_baseline():
+def backdoor_plot():
+    baseline_no_attack = get_data(
+        filename='backdoor/logs/2023-04-16-20-16-16/central_resnet18_4_3_ScaleTrue10_trigger1.csv',
+        # filename='backdoor/logs/CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
+        selected_rows=[1])
+    baseline_attack = get_data(
+        filename='backdoor/logs/2023-04-16-17-12-37/central_resnet18_4_3_ScaleTrue10_trigger1.csv',
+        # filename='backdoor/logs/CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-15-40-40_trigger1.csv',
+        selected_rows=[1, 3])
+
     """
     后门攻击基准实验
     """
-    plot(y_data=(get_data(work_dir='backdoor/logs/',
-                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-14-57-58_trigger1.csv',
-                          selected_rows=[1, 3]) +
-                 get_data(work_dir='backdoor/logs/',
-                          filename='CIFAR10_resnet18_4_3_ScaleTrue4_2023-03-10-15-40-40_trigger1.csv',
-                          selected_rows=[1, 3])),
-         legends=['$\mathrm{MTA}$ 不攻击',
-                  '$\mathrm{BTA}$ 不攻击',
-                  '$\mathrm{MTA}$ 连续攻击',
-                  '$\mathrm{BTA}$ 连续攻击'],
-         colors=['b', 'r', 'b', 'r'],
-         linestyles=['--', '--', '-', '-'],
+    plot(y_data=baseline_no_attack + baseline_attack,
+         legends=['主任务 - 不攻击',
+                  '主任务 - 连续攻击',
+                  '后门任务 - 连续攻击'],
+         colors=['b', 'b', 'r'],
+         linestyles=['--', '-', '-'],
          xlabel='轮次',
          ylabel='准确率')
 
-def backdoor_cluster():
     """
-    后门攻击+kmeans
+    后门框架 防护性能
     """
-    plot(y_data=(get_data(work_dir='backdoor/logs/2023-04-12-21-50-57/',
-                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+    plot(y_data=(get_data(filename='backdoor/logs/2023-04-12-21-50-57/central_resnet18_4_3_ScaleTrue4_trigger1.csv',
                           selected_rows=[1, 3]) +
-                 get_data(work_dir='backdoor/logs/2023-04-12-18-20-20/',
-                          filename='central_resnet18_4_3_ScaleTrue4_trigger1.csv',
-                          selected_rows=[1, 3])
-                 ),
-         legends=['$\mathrm{MTA}$ 不攻击',
-                  '$\mathrm{BTA}$ 不攻击',
-                  '$\mathrm{MTA}$ 连续攻击',
-                  '$\mathrm{BTA}$ 连续攻击'],
+                 baseline_attack),
+         legends=['主任务 - 后门防护框架',
+                  '后门任务 - 后门防护框架',
+                  '主任务 - 传统联邦学习框架',
+                  '后门任务 - 传统联邦学习框架'],
          colors=['b', 'r', 'b', 'r'],
          linestyles=['--', '--', '-', '-'],
          xlabel='轮次',
-         ylabel='准确率')
+         ylabel='准确率',
+         lim_axis=True)
 
-    # plot(y_data=(get_data(work_dir='backdoor/logs/',
-    #                       filename='MNIST_badnets_2023-03-08-18-58-57_trigger0.csv',
-    #                       selected_rows=[1]) +
-    #              get_data(work_dir='backdoor/logs/',
-    #                       filename='MNIST_trigger1.csv',
-    #                       selected_rows=[1])
-    #              ),
-    #      legends=['联邦隐私保护框架',
-    #               '传统联邦学习'],
-    #      colors=['b', 'r'],
-    #      linestyles=['-', '-'],
-    #      xlabel='轮次',
-    #      ylabel='准确率')
+    """
+    后门框架 防护损耗 mta
+    """
+    plot(y_data=(get_data(filename='backdoor/logs/2023-04-12-21-50-57/central_resnet18_4_3_ScaleTrue4_trigger1.csv',
+                          selected_rows=[1]) +
+                 baseline_no_attack),
+         legends=['联邦学习后门防护框架',
+                  '传统联邦学习框架',
+                  '$\mathrm{MTA}$ 连续攻击',
+                  '$\mathrm{BTA}$ 连续攻击'],
+         colors=['b', 'r'],
+         linestyles=['-', '-'],
+         xlabel='轮次',
+         ylabel='主任务准确率',
+         lim_axis=True)
 
 
-# backdoor_baseline()
+backdoor_plot()
 
 # backdoor_defense()
 
-backdoor_cluster()
+# backdoor_cluster()
 
 # backdoor_dba('backdoor/logs/2023-03-31-16-01-02/',
 #              'CIFAR10_resnet18_16_12_ScaleTrue2_trigger1.csv')

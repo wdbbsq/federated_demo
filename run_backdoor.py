@@ -13,6 +13,9 @@ from utils import get_clients_indices
 from utils.file_utils import prepare_operation
 from utils.params import init_parser
 
+import os
+os.environ["OMP_NUM_THREADS"] = '1'
+
 LOG_PREFIX = './backdoor/logs'
 LAYER_NAME = 'fc.weight'
 
@@ -84,9 +87,9 @@ if __name__ == '__main__':
         client_ids_map = get_clients_indices(candidates)
 
         for idx in candidates:
-            c = clients[idx]
+            c: Client = clients[idx]
             local_update = c.boot_training(server.global_model, epoch, attack_now)
-            server.sum_update(local_update, idx)
+            server.sum_update(local_update, c.client_id)
 
         # 进行防御
         if args.defense:
@@ -96,6 +99,7 @@ if __name__ == '__main__':
         test_status = server.evaluate_backdoor(device, epoch, LOG_PREFIX) if args.attack else \
             server.eval_model(server.eval_dataloader, device, epoch, LOG_PREFIX)
 
+        # 保存结果
         status.append({
             'epoch': epoch,
             **{f'{k}': v for k, v in test_status.items()}

@@ -22,6 +22,7 @@ class BaseServer:
                                           shuffle=True)
         # 保存客户端上传的模型更新
         self.weight_accumulator = dict()
+        # 当前轮次的客户端更新，进行防御时才生效
         self.local_updates = []
 
     def preparation(self):

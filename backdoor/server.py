@@ -34,7 +34,8 @@ class Server(BaseServer):
         # 累加客户端更新
         for update in self.local_updates:
             if update['id'] not in evil_list:
-                super(Server, self).sum_update(update['local_update'])
+                for name, params in self.global_model.state_dict().items():
+                    self.weight_accumulator[name].add_(update['local_update'][name])
 
     def boot_clip(self, layer_name):
         """
@@ -58,6 +59,7 @@ class Server(BaseServer):
             x, y = id_seq_map.get(i['id']), id_seq_map.get(j['id'])
             cos_list[x][y] = cos
             cos_list[y][x] = cos
+        # 自己与自己的相似度为1
         for i in range(k_workers):
             cos_list[i][i] = 1
 
@@ -75,7 +77,7 @@ class Server(BaseServer):
         dist = calc_vector_dist(centers[0].reshape(1, -1),
                                 centers[1].reshape(1, -1))
         evil_list = []
-        # 聚类中心大于阈值，才认为有恶意客户端
+        # 聚类中心之间的距离大于阈值，才认为有恶意客户端
         if dist >= MAX_CENTER_DIST:
             labels = clf.labels_
             class_0, class_1 = [], []
