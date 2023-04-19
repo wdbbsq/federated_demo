@@ -79,12 +79,12 @@
 
                 "--total_workers", "4",
 
-                // "--attack",
+                "--attack",
                 "--need_scale",
-                "--weight_scale", "10",
+                "--weight_scale", "4",
                 "--adversary_num", "1",
                 "--defense",
-                "--cluster",
+                // "--cluster",
                 "--clip",
             ],
             "justMyCode": true
